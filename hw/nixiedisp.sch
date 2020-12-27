@@ -5,13 +5,13 @@ $Descr A4 8268 11693 portrait
 encoding utf-8
 Sheet 1 7
 Title "USB nixie tube display"
-Date ""
-Rev ""
+Date "2020-12-27"
+Rev "1"
 Comp ""
 Comment1 ""
-Comment2 ""
-Comment3 ""
-Comment4 ""
+Comment2 "https://github.com/jtsiomb/nixiedisp"
+Comment3 "Free hardware design. License: GNU GPLv3 (or later)"
+Comment4 "Copyright © John Tsiombikas <nuclear@member.fsf.org>"
 $EndDescr
 $Comp
 L nixiedisp:IN14 U8

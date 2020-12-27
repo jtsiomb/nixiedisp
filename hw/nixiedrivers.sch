@@ -3,15 +3,15 @@ EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
-Sheet 6 7
+Sheet 7 7
 Title "Nixie driver/decoder"
-Date ""
-Rev ""
+Date "2020-12-27"
+Rev "1"
 Comp ""
 Comment1 ""
-Comment2 ""
-Comment3 ""
-Comment4 ""
+Comment2 "https://github.com/jtsiomb/nixiedisp"
+Comment3 "Free hardware design. License: GNU GPLv3 (or later)"
+Comment4 "Copyright © John Tsiombikas <nuclear@member.fsf.org>"
 $EndDescr
 $Comp
 L Transistor_BJT:MMBTA42 Q?
