@@ -1,5 +1,14 @@
+*.o
+*.d
 *.swp
 *.*-bak
 _autosave-*
 *.bck
 *.net
+*.pdf
+*.jpg
+*.zip
+*.eep
+*.hex
+*.map
+fw/nixiedisp
