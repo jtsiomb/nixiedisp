@@ -41,7 +41,6 @@
 
 static void proc_cmd(char *input);
 static void update_display(void);
-static void show_number(uint32_t xnum);
 static void setclock(int hr, int min, int sec);
 static void setdate(int day, int mon, int year);
 
@@ -49,7 +48,8 @@ enum { MODE_CLOCK, MODE_NUM };
 
 static int mode;
 static int echo, blank;
-static uint32_t number;
+static unsigned char disp[7];
+static int dotpos;
 
 static char input[128];
 static unsigned char inp_cidx;
@@ -99,7 +99,7 @@ static const char *helpstr =
 
 static void proc_cmd(char *input)
 {
-	int cmd, hr, min, sec, day, mon, year;
+	int i, cmd, hr, min, sec, day, mon, year;
 	char *args;
 
 	while(*input && isspace(*input)) input++;
@@ -160,21 +160,6 @@ static void proc_cmd(char *input)
 		/* TODO */
 		break;
 
-	case 'x':
-		{
-			char *endp;
-			long num = strtol(args, &endp, 16);
-			if(endp == args) {
-				printf("ERR invalid hex number: \"%s\"\n", args);
-				break;
-			}
-			number = num;
-			if(mode == MODE_NUM) {
-				update_display();
-			}
-		}
-		break;
-
 	case '?':
 	case 'h':
 		puts("OK command help");
@@ -182,10 +167,37 @@ static void proc_cmd(char *input)
 		break;
 
 	default:
-		if(isdigit(args[0])) {
-			int num = atoi(args);
-			number = (uint32_t)num << 16;
-			printf("OK number: %d (%08lxh)\n", num, number);
+		if(isdigit(args[0]) || args[0] == '.') {
+			int c;
+			char *end;
+			unsigned char *dptr;
+
+			end = args;
+			while(*end && (isdigit(*end) || *end == '.')) end++;
+			if(end == args) break;
+
+			dptr = disp + 5;
+			while(end > args && dptr >= disp) {
+				c = *--end;
+				if(c == '.') {
+					dotpos = dptr - disp;
+				} else {
+					*dptr-- = c - '0';
+				}
+			}
+
+			/* fill the leading digits with 0xff, which means blank */
+			while(dptr >= disp) {
+				*dptr-- = 0xff;
+			}
+
+			fputs("OK number: \"", stdout);
+			for(i=0; i<6; i++) {
+				if(dotpos == i) putchar('.');
+				putchar(disp[i] == 0xff ? ' ' : disp[i] + '0');
+			}
+			puts("\"");
+
 			if(mode == MODE_NUM) {
 				update_display();
 			}
@@ -195,33 +207,27 @@ static void proc_cmd(char *input)
 	}
 }
 
-static void update_display(void)
-{
-	show_number(number);
-}
-
-static void set_digit(int idx, unsigned int d)
+static void shiftout(int sreg, unsigned char val)
 {
 	int i;
-	unsigned int clkbit = 1 << idx;
+	unsigned int clkbit = 1 << sreg;
 
 	for(i=0; i<8; i++) {
-		PORTC = (PORTC & 0xfe) | (d >> 7);
+		PORTC = (PORTC & 0xfe) | (val >> 7);
 		PORTB = (PORTB & 0xf8) | clkbit;
 		PORTB &= 0xf8;
-		d <<= 1;
+		val <<= 1;
 	}
 }
 
-static void show_number(uint32_t n)
+static void update_display(void)
 {
-	int i, d;
+	int i;
+	unsigned char *dptr = disp;
 
-	for(i=0; i<6; i++) {
-		d = n % 10;
-		n /= 10;
-
-		set_digit(i, d);
+	for(i=0; i<3; i++) {
+		shiftout(i, (dptr[0] & 0xf) | (dptr[1] << 4));
+		dptr += 2;
 	}
 }
 
