@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <ctype.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
@@ -39,8 +40,16 @@
 #define PD_FDOT		0x80
 
 static void proc_cmd(char *input);
+static void update_display(void);
+static void show_number(uint32_t xnum);
+static void setclock(int hr, int min, int sec);
+static void setdate(int day, int mon, int year);
 
-static int echo;
+enum { MODE_CLOCK, MODE_NUM };
+
+static int mode;
+static int echo, blank;
+static uint32_t number;
 
 static char input[128];
 static unsigned char inp_cidx;
@@ -79,20 +88,125 @@ int main(void)
 	return 0;
 }
 
+static const char *helpstr =
+	"<num>: set number\n"
+	" e 0|1: turn echo on/off\n"
+	" b 0|1: blank/unblank display\n"
+	" m n|c: change display mode (n: number, c: clock)\n"
+	" s <hr>:<min>.<sec>: set clock\n"
+	" d <day>/<mon>/<year>: set date\n"
+	" ?/h: print command help\n";
+
 static void proc_cmd(char *input)
 {
-	switch(input[0]) {
+	int cmd, hr, min, sec, day, mon, year;
+	char *args;
+
+	while(*input && isspace(*input)) input++;
+	if(!*input) return;
+
+	cmd = *input;
+	args = input + 1;
+	while(*args && isspace(*args)) args++;
+
+	switch(cmd) {
 	case 'e':
-		echo = input[1] == '1' ? 1 : 0;
+		echo = atoi(args);
 		printf("OK echo %s\n", echo ? "on" : "off");
 		break;
 
+	case 'b':
+		printf("OK %sblanking display\n", blank ? "" : "un");
+		blank = atoi(args);
+		update_display();
+		break;
+
+	case 'm':
+		if(input[1] == 'c') {
+			printf("OK clock mode\n");
+			mode = MODE_CLOCK;
+			update_display();
+		} else if(input[1] == 'n') {
+			printf("OK number mode\n");
+			mode = MODE_NUM;
+			update_display();
+		} else {
+			printf("ERR invalid mode: '%s'\n", args);
+		}
+		break;
+
+	case 's':
+		sec = 0;
+		if(sscanf(args, "%d:%d.%d", &hr, &min, &sec) < 2) {
+			printf("ERR invalid time string: \"%s\"\n", args);
+			break;
+		}
+		setclock(hr, min, sec);
+		printf("OK clock set\n");
+		if(mode == MODE_CLOCK) {
+			update_display();
+		}
+		break;
+
+	case 'd':
+		if(sscanf(args, "%d/%d/%d", &day, &mon, &year) != 3 || day < 1 || day > 31 ||
+				mon < 1 || mon > 12 || year < 0) {
+			printf("ERR invalid date string: \"%s\"\n", args);
+			break;
+		}
+		if(year < 100) year += 2000;
+		setdate(day, mon, year);
+		printf("OK date set\n");
+		/* TODO */
+		break;
+
+	case 'x':
+		{
+			char *endp;
+			long num = strtol(args, &endp, 16);
+			if(endp == args) {
+				printf("ERR invalid hex number: \"%s\"\n", args);
+				break;
+			}
+			number = num;
+			if(mode == MODE_NUM) {
+				update_display();
+			}
+		}
+		break;
+
 	case '?':
+	case 'h':
 		puts("OK command help");
-		puts(" e 0|1: turn echo on/off");
+		puts(helpstr);
 		break;
 
 	default:
-		printf("ERR unknown command: '%c'\n", input[0]);
+		if(isdigit(args[0])) {
+			int num = atoi(args);
+			number = (uint32_t)num << 16;
+			printf("OK number: %d (%08lxh)\n", num, number);
+			if(mode == MODE_NUM) {
+				update_display();
+			}
+		} else {
+			printf("ERR unknown command: '%c'\n", cmd);
+		}
 	}
+}
+
+static void update_display(void)
+{
+}
+
+static void show_number(uint32_t xnum)
+{
+}
+
+static void setclock(int hr, int min, int sec)
+{
+}
+
+static void setdate(int day, int mon, int year)
+{
 }
