@@ -77,6 +77,7 @@ int main(void)
 			}
 
 			if(c == '\r' || c == '\n') {
+				if(echo) putchar('\n');
 				input[inp_cidx] = 0;
 				proc_cmd(input);
 				inp_cidx = 0;
@@ -84,6 +85,8 @@ int main(void)
 				input[inp_cidx++] = c;
 			}
 		}
+
+		update_display();
 	}
 	return 0;
 }
@@ -167,20 +170,21 @@ static void proc_cmd(char *input)
 		break;
 
 	default:
-		if(isdigit(args[0]) || args[0] == '.') {
+		if(isdigit(cmd) || cmd == '.') {
 			int c;
 			char *end;
 			unsigned char *dptr;
 
-			end = args;
+			end = input;
 			while(*end && (isdigit(*end) || *end == '.')) end++;
-			if(end == args) break;
+			if(end == input) break;
 
+			dotpos = -1;
 			dptr = disp + 5;
-			while(end > args && dptr >= disp) {
+			while(end > input && dptr >= disp) {
 				c = *--end;
 				if(c == '.') {
-					dotpos = dptr - disp;
+					dotpos = dptr - disp + 1;
 				} else {
 					*dptr-- = c - '0';
 				}
@@ -222,12 +226,27 @@ static void shiftout(int sreg, unsigned char val)
 
 static void update_display(void)
 {
+	static int mplex;
 	int i;
 	unsigned char *dptr = disp;
 
-	for(i=0; i<3; i++) {
-		shiftout(i, (dptr[0] & 0xf) | (dptr[1] << 4));
-		dptr += 2;
+	mplex = (mplex + 1) & 7;
+
+	if(mplex) {
+		for(i=0; i<3; i++) {
+			shiftout(i, (dptr[0] & 0xf) | (dptr[1] << 4));
+			dptr += 2;
+		}
+	} else {
+		shiftout(0, 0xff);
+		shiftout(1, 0xff);
+		shiftout(2, 0xff);
+	}
+
+	if(!mplex && dotpos >= 0 && dotpos < 6) {
+		PORTD = PD_ADOT << dotpos;
+	} else {
+		PORTD = 0;
 	}
 }
 
