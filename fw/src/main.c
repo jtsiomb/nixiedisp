@@ -197,10 +197,32 @@ static void proc_cmd(char *input)
 
 static void update_display(void)
 {
+	show_number(number);
 }
 
-static void show_number(uint32_t xnum)
+static void set_digit(int idx, unsigned int d)
 {
+	int i;
+	unsigned int clkbit = 1 << idx;
+
+	for(i=0; i<8; i++) {
+		PORTC = (PORTC & 0xfe) | (d >> 7);
+		PORTB = (PORTB & 0xf8) | clkbit;
+		PORTB &= 0xf8;
+		d <<= 1;
+	}
+}
+
+static void show_number(uint32_t n)
+{
+	int i, d;
+
+	for(i=0; i<6; i++) {
+		d = n % 10;
+		n /= 10;
+
+		set_digit(i, d);
+	}
 }
 
 static void setclock(int hr, int min, int sec)
