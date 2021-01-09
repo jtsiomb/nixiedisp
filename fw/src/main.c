@@ -7,11 +7,9 @@
 #include <util/delay.h>
 #include "serial.h"
 
-/* TODO before board arrive:
- * - USB comms
- * - RTC time/data setting
- * - hack the digit drivers with 7seg?
- */
+#define FADE_TIME	1023
+#define HALF_FADE	511
+#define FADE_SHIFT	5
 
 /* pin assignments
  * B[0,2]: serial clock for the 3 shift registers
@@ -48,8 +46,10 @@ enum { MODE_CLOCK, MODE_NUM };
 
 static int mode;
 static int echo, blank;
-static unsigned char disp[7];
-static int dotpos;
+static unsigned char disp[7], prev[6], fdisp[6];
+static unsigned char glevel = 15, level[7] = {15, 15, 15, 15, 15, 15, 15};
+static unsigned int fade_time[6];
+static int dotpos = -1;
 
 static char input[128];
 static unsigned char inp_cidx;
@@ -87,6 +87,7 @@ int main(void)
 		}
 
 		update_display();
+		_delay_us(128);
 	}
 	return 0;
 }
@@ -102,8 +103,8 @@ static const char *helpstr =
 
 static void proc_cmd(char *input)
 {
-	int i, cmd, hr, min, sec, day, mon, year;
-	char *args;
+	int i, cmd, hr, min, sec, day, mon, year, tmp;
+	char *args, *endp;
 
 	while(*input && isspace(*input)) input++;
 	if(!*input) return;
@@ -121,18 +122,15 @@ static void proc_cmd(char *input)
 	case 'b':
 		printf("OK %sblanking display\n", blank ? "" : "un");
 		blank = atoi(args);
-		update_display();
 		break;
 
 	case 'm':
 		if(input[1] == 'c') {
 			printf("OK clock mode\n");
 			mode = MODE_CLOCK;
-			update_display();
 		} else if(input[1] == 'n') {
 			printf("OK number mode\n");
 			mode = MODE_NUM;
-			update_display();
 		} else {
 			printf("ERR invalid mode: '%s'\n", args);
 		}
@@ -146,9 +144,6 @@ static void proc_cmd(char *input)
 		}
 		setclock(hr, min, sec);
 		printf("OK clock set\n");
-		if(mode == MODE_CLOCK) {
-			update_display();
-		}
 		break;
 
 	case 'd':
@@ -169,30 +164,50 @@ static void proc_cmd(char *input)
 		puts(helpstr);
 		break;
 
+	case 'L':
+		tmp = strtol(args, &endp, 10);
+		if(endp == args || tmp < 0 || tmp > 15) {
+			printf("ERR invalid intensity level: \"%s\"\n", args);
+			break;
+		}
+		printf("OK global intensity: %d\n", tmp);
+		glevel = tmp;
+		break;
+
+	case 'x':	/* transition periods */
+
+
+
 	default:
 		if(isdigit(cmd) || cmd == '.') {
-			int c;
+			int c, d, didx;
 			char *end;
-			unsigned char *dptr;
 
 			end = input;
 			while(*end && (isdigit(*end) || *end == '.')) end++;
 			if(end == input) break;
 
 			dotpos = -1;
-			dptr = disp + 5;
-			while(end > input && dptr >= disp) {
+			didx = 5;
+			while(end > input && didx >= 0) {
 				c = *--end;
 				if(c == '.') {
-					dotpos = dptr - disp + 1;
+					dotpos = didx + 1;
 				} else {
-					*dptr-- = c - '0';
+					d = c - '0';
+					if(disp[didx] != d) {
+						fade_time[didx] = FADE_TIME;
+						prev[didx] = disp[didx];
+						disp[didx--] = d;
+					} else {
+						didx--;
+					}
 				}
 			}
 
 			/* fill the leading digits with 0xff, which means blank */
-			while(dptr >= disp) {
-				*dptr-- = 0xff;
+			while(didx >= 0) {
+				disp[didx--] = 0xff;
 			}
 
 			fputs("OK number: \"", stdout);
@@ -202,9 +217,6 @@ static void proc_cmd(char *input)
 			}
 			puts("\"");
 
-			if(mode == MODE_NUM) {
-				update_display();
-			}
 		} else {
 			printf("ERR unknown command: '%c'\n", cmd);
 		}
@@ -226,28 +238,64 @@ static void shiftout(int sreg, unsigned char val)
 
 static void update_display(void)
 {
-	static int mplex;
-	int i, visdot;
-	unsigned char *dptr = disp;
+	static unsigned int frame;
+	int i, visdot, mplex, lvl, dframe, fade, fadeout;
+	unsigned char *dptr, digit;
 
+	/* id the dot is not visible at all, we don't bother with multiplexing it
+	 * with the digits (see below)
+	 */
 	visdot = dotpos >= 0 && dotpos < 6;
-	mplex = (mplex + 1) & 7;
+
+	/* mplex is used to multiplex the decimal point 1/4 of the time with the
+	 * digits the rest 3/4. if we ignite both the decimal point and a digit in
+	 * the same tube, it leads to a fuzzy glow around the decimal point
+	 */
+	mplex = ++frame & 3;
+
+	/* handle dimming by splitting a display cycle into 16 sections, and
+	 * keeping the tube off for a fraction of those, even if it's supposed
+	 * to display a digit.
+	 */
+	dframe = frame & 0xf;
 
 	if(!visdot || mplex) {
-		for(i=0; i<3; i++) {
-			shiftout(i, (dptr[0] & 0xf) | (dptr[1] << 4));
-			dptr += 2;
+		/* dot is not visible at all, or it is, but we're in the 3/4 of the time
+		 * when we display digits
+		 */
+
+		lvl = glevel;	/* take global dimming into account */
+		for(i=0; i<6; i++) {
+
+			if(fade_time[i]) {
+				fadeout = fade_time[i] > HALF_FADE ? 1 : 0;
+				fade = fadeout ? fade_time[i] - HALF_FADE : HALF_FADE - fade_time[i];
+				digit = fadeout ? prev[i] : disp[i];
+				fade_time[i]--;
+
+				lvl = lvl * (fade >> FADE_SHIFT) >> 4;
+
+				fdisp[i] = dframe <= lvl ? digit : 0xff;
+			} else {
+				fdisp[i] = dframe <= lvl ? disp[i] : 0xff;
+			}
 		}
 	} else {
-		shiftout(0, 0xff);
-		shiftout(1, 0xff);
-		shiftout(2, 0xff);
+		fdisp[0] = fdisp[1] = fdisp[2] = fdisp[3] = fdisp[4] = fdisp[5] = 0xff;
 	}
 
-	if(!mplex && visdot) {
+	lvl = glevel * level[6] >> 4;
+	if(!mplex && visdot && dframe <= lvl) {
+		/* dot is visible and we're in the 1/4 of the time when we display the dot */
 		PORTD = PD_ADOT << dotpos;
 	} else {
 		PORTD = 0;
+	}
+
+	dptr = fdisp;
+	for(i=0; i<3; i++) {
+		shiftout(i, (dptr[0] & 0xf) | (dptr[1] << 4));
+		dptr += 2;
 	}
 }
 
