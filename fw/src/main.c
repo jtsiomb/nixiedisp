@@ -227,12 +227,13 @@ static void shiftout(int sreg, unsigned char val)
 static void update_display(void)
 {
 	static int mplex;
-	int i;
+	int i, visdot;
 	unsigned char *dptr = disp;
 
+	visdot = dotpos >= 0 && dotpos < 6;
 	mplex = (mplex + 1) & 7;
 
-	if(mplex) {
+	if(!visdot || mplex) {
 		for(i=0; i<3; i++) {
 			shiftout(i, (dptr[0] & 0xf) | (dptr[1] << 4));
 			dptr += 2;
@@ -243,7 +244,7 @@ static void update_display(void)
 		shiftout(2, 0xff);
 	}
 
-	if(!mplex && dotpos >= 0 && dotpos < 6) {
+	if(!mplex && visdot) {
 		PORTD = PD_ADOT << dotpos;
 	} else {
 		PORTD = 0;
