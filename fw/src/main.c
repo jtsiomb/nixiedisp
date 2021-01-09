@@ -62,7 +62,7 @@ int main(void)
 	DDRB = ~PB_RTC_DATA;	/* port B all outputs except the RTC data line */
 	PORTB = 0;
 	DDRC = 0xff;			/* port C all outputs */
-	PORTC = 0;
+	PORTC = PC_HRSEP;		/* clock mode is default, enable hour separator LEDs */
 	DDRD = 0xff;			/* port D all outputs */
 	PORTD = 0;
 
@@ -129,9 +129,12 @@ static void proc_cmd(char *input)
 		if(input[1] == 'c') {
 			printf("OK clock mode\n");
 			mode = MODE_CLOCK;
+			PORTC |= PC_HRSEP;
 		} else if(input[1] == 'n') {
 			printf("OK number mode\n");
 			mode = MODE_NUM;
+			PORTC &= ~PC_HRSEP;
+			disp[0] = disp[1] = disp[2] = disp[3] = disp[4] = disp[5] = 0xff;
 		} else {
 			printf("ERR invalid mode: '%s'\n", args);
 		}
@@ -246,15 +249,19 @@ static void shiftout(int sreg, unsigned char val)
 static void update_display(void)
 {
 	static unsigned int frame;
-	int i, visdot, mplex, lvl, dframe, fade, fadeout;
+	int i, visdot, mplex, lvl, dframe, fade, fadeout, dp;
 	unsigned char *dptr, digit, fademask;
 
 	fademask = mode_fademask[mode];
 
-	/* id the dot is not visible at all, we don't bother with multiplexing it
-	 * with the digits (see below)
-	 */
-	visdot = dotpos >= 0 && dotpos < 6;
+	if(mode == MODE_CLOCK) {
+		/* dot is always in the seconds tube when in clock mode */
+		dp = 4;
+		visdot = 1;
+	} else {
+		dp = dotpos;
+		visdot = dotpos >= 0 && dotpos < 6;
+	}
 
 	/* mplex is used to multiplex the decimal point 1/4 of the time with the
 	 * digits the rest 3/4. if we ignite both the decimal point and a digit in
@@ -297,7 +304,7 @@ static void update_display(void)
 	lvl = glevel * level[6] >> 4;
 	if(!mplex && visdot && dframe <= lvl) {
 		/* dot is visible and we're in the 1/4 of the time when we display the dot */
-		PORTD = PD_ADOT << dotpos;
+		PORTD = PD_ADOT << dp;
 	} else {
 		PORTD = 0;
 	}
