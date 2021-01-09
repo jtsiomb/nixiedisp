@@ -18,3 +18,8 @@ Hardware designs and software (firmware) in this project are free. Feel free to
 use, modify, and/or redistribute under the terms of the GNU General Public
 License v3, or at your option any later version published by the Free Software
 Foundation. See COPYING for details.
+
+References
+----------
+High-voltage power supply based on Michael Moorrees' nixie supply MK1.5:
+https://threeneurons.wordpress.com/nixie-power-supply
