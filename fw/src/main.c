@@ -49,6 +49,7 @@ static int echo, blank;
 static unsigned char disp[7], prev[6], fdisp[6];
 static unsigned char glevel = 15, level[7] = {15, 15, 15, 15, 15, 15, 15};
 static unsigned int fade_time[6];
+static unsigned char mode_fademask[] = {0xfc, 0xff};	/* clock/num fademasks */
 static int dotpos = -1;
 
 static char input[128];
@@ -174,9 +175,15 @@ static void proc_cmd(char *input)
 		glevel = tmp;
 		break;
 
-	case 'x':	/* transition periods */
-
-
+	case 'x':
+		tmp = strtol(args, &endp, 0);
+		if(endp == args) {
+			printf("ERR invalid fade mask: \"%s\"\n", args);
+			break;
+		}
+		printf("OK %s fade mask: %02x\n", mode == MODE_CLOCK ? "clock" : "number", tmp);
+		mode_fademask[mode] = tmp;
+		break;
 
 	default:
 		if(isdigit(cmd) || cmd == '.') {
@@ -240,7 +247,9 @@ static void update_display(void)
 {
 	static unsigned int frame;
 	int i, visdot, mplex, lvl, dframe, fade, fadeout;
-	unsigned char *dptr, digit;
+	unsigned char *dptr, digit, fademask;
+
+	fademask = mode_fademask[mode];
 
 	/* id the dot is not visible at all, we don't bother with multiplexing it
 	 * with the digits (see below)
@@ -267,11 +276,10 @@ static void update_display(void)
 		lvl = glevel;	/* take global dimming into account */
 		for(i=0; i<6; i++) {
 
-			if(fade_time[i]) {
+			if((fademask & (0x20 >> i)) && fade_time[i]) {
 				fadeout = fade_time[i] > HALF_FADE ? 1 : 0;
 				fade = fadeout ? fade_time[i] - HALF_FADE : HALF_FADE - fade_time[i];
 				digit = fadeout ? prev[i] : disp[i];
-				fade_time[i]--;
 
 				lvl = lvl * (fade >> FADE_SHIFT) >> 4;
 
@@ -279,6 +287,8 @@ static void update_display(void)
 			} else {
 				fdisp[i] = dframe <= lvl ? disp[i] : 0xff;
 			}
+
+			if(fade_time[i]) fade_time[i]--;
 		}
 	} else {
 		fdisp[0] = fdisp[1] = fdisp[2] = fdisp[3] = fdisp[4] = fdisp[5] = 0xff;
