@@ -18,4 +18,14 @@ void rtc_get_date(struct rtc_date *date);
 void rtc_store(int addr, unsigned char byte);
 unsigned char rtc_load(int addr);
 
+static inline int rtc_bcd2bin(int x)
+{
+	return x | ((x >> 4) * 10);
+}
+
+static inline int rtc_bin2bcd(int x)
+{
+	return (x % 10) | ((x / 10) << 4);
+}
+
 #endif	/* DS1302RTC_H_ */
