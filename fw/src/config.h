@@ -1,6 +1,8 @@
 #ifndef CONFIG_H_
 #define CONFIG_H_
 
+#define VERSTR	"1.0"
+
 /* pin assignments
  * B[0,2]: serial clock for the 3 shift registers
  * B4: SPI MISO connected to RTC I/O pin

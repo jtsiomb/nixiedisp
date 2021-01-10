@@ -71,12 +71,20 @@ int main(void)
 }
 
 static const char *helpstr =
-	"<num>: set number\n"
+	"nixiedisp firmware v" VERSTR " by John Tsiombikas <nuclear@member.fsf.org>\n"
+	"nixiedisp is free hardware/software, released under the GNU GPLv3 or later\n"
+	"      web: http://nuclear.mutantstargoat.com/hw/nixiedisp\n"
+	" git repo: https://github.com/jtsiomb/nixiedisp\n"
+	"\n"
+	"Commands:\n"
+	" <num>: set number\n"
 	" e 0|1: turn echo on/off\n"
 	" b 0|1: blank/unblank display\n"
 	" m n|c: change display mode (n: number, c: clock)\n"
 	" s <hr>:<min>.<sec>: set clock\n"
 	" d <day>/<mon>/<year>: set date\n"
+	" L <level>: global intensity level (0-15)\n"
+	" x <mask>: per-digit cross-fade mask (0: all disable, 0x3f: all enable)\n"
 	" ?/h: print command help\n";
 
 static void proc_cmd(char *input)
