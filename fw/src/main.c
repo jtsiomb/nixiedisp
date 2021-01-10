@@ -6,41 +6,16 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 #include "serial.h"
+#include "ds1302rtc.h"
+#include "config.h"
 
 #define FADE_TIME	1023
 #define HALF_FADE	511
 #define FADE_SHIFT	5
 
-/* pin assignments
- * B[0,2]: serial clock for the 3 shift registers
- * B4: SPI MISO connected to RTC I/O pin
- * B5: SPI SCK connected to RTC serial clock
- *
- * C0: serial data for the 3 shift registers
- * C1: hour separator LEDs
- * C2: RTC chip select (active high)
- *
- * D[2,7]: nixie dots
- */
-#define PB_CK1		0x01
-#define PB_CK2		0x02
-#define PB_CK3		0x04
-#define PB_RTC_DATA	0x10
-#define PB_RTC_CK	0x20
-#define PC_SDATA	0x01
-#define PC_HRSEP	0x02
-#define PC_RTC_EN	0x04
-#define PD_ADOT		0x04
-#define PD_BDOT		0x08
-#define PD_CDOT		0x10
-#define PD_DDOT		0x20
-#define PD_EDOT		0x40
-#define PD_FDOT		0x80
-
 static void proc_cmd(char *input);
+static void setdigit(int idx, unsigned char val);
 static void update_display(void);
-static void setclock(int hr, int min, int sec);
-static void setdate(int day, int mon, int year);
 
 enum { MODE_CLOCK, MODE_NUM };
 
@@ -49,7 +24,7 @@ static int echo, blank;
 static unsigned char disp[7], prev[6], fdisp[6];
 static unsigned char glevel = 15, level[7] = {15, 15, 15, 15, 15, 15, 15};
 static unsigned int fade_time[6];
-static unsigned char mode_fademask[] = {0xfc, 0xff};	/* clock/num fademasks */
+static unsigned char fademask = 0xff;
 static int dotpos = -1;
 
 static char input[128];
@@ -69,6 +44,8 @@ int main(void)
 	/* init the serial port we use to talk to the host */
 	init_serial(38400);
 	sei();
+
+	rtc_init();
 
 	for(;;) {
 		if(have_input()) {
@@ -104,7 +81,7 @@ static const char *helpstr =
 
 static void proc_cmd(char *input)
 {
-	int i, cmd, hr, min, sec, day, mon, year, tmp;
+	int cmd, hr, min, sec, day, mon, year, tmp;
 	char *args, *endp;
 
 	while(*input && isspace(*input)) input++;
@@ -146,7 +123,7 @@ static void proc_cmd(char *input)
 			printf("ERR invalid time string: \"%s\"\n", args);
 			break;
 		}
-		setclock(hr, min, sec);
+		rtc_set_time(hr, min, sec);
 		printf("OK clock set\n");
 		break;
 
@@ -157,9 +134,8 @@ static void proc_cmd(char *input)
 			break;
 		}
 		if(year < 100) year += 2000;
-		setdate(day, mon, year);
+		rtc_set_date(day, mon, year);
 		printf("OK date set\n");
-		/* TODO */
 		break;
 
 	case '?':
@@ -184,13 +160,13 @@ static void proc_cmd(char *input)
 			printf("ERR invalid fade mask: \"%s\"\n", args);
 			break;
 		}
-		printf("OK %s fade mask: %02x\n", mode == MODE_CLOCK ? "clock" : "number", tmp);
-		mode_fademask[mode] = tmp;
+		printf("OK fade mask: %02x\n", tmp);
+		fademask = tmp;
 		break;
 
 	default:
 		if(isdigit(cmd) || cmd == '.') {
-			int c, d, didx;
+			int c, didx;
 			char *end;
 
 			end = input;
@@ -204,14 +180,7 @@ static void proc_cmd(char *input)
 				if(c == '.') {
 					dotpos = didx + 1;
 				} else {
-					d = c - '0';
-					if(disp[didx] != d) {
-						fade_time[didx] = FADE_TIME;
-						prev[didx] = disp[didx];
-						disp[didx--] = d;
-					} else {
-						didx--;
-					}
+					setdigit(didx--, c - '0');
 				}
 			}
 
@@ -220,17 +189,21 @@ static void proc_cmd(char *input)
 				disp[didx--] = 0xff;
 			}
 
-			fputs("OK number: \"", stdout);
-			for(i=0; i<6; i++) {
-				if(dotpos == i) putchar('.');
-				putchar(disp[i] == 0xff ? ' ' : disp[i] + '0');
-			}
-			puts("\"");
-
 		} else {
 			printf("ERR unknown command: '%c'\n", cmd);
 		}
 	}
+}
+
+static void setdigit(int idx, unsigned char val)
+{
+	unsigned char *dptr = disp + idx;
+
+	if(val == *dptr) return;
+
+	prev[idx] = *dptr;
+	*dptr = val;
+	fade_time[idx] = FADE_TIME;
 }
 
 static void shiftout(int sreg, unsigned char val)
@@ -250,14 +223,21 @@ static void update_display(void)
 {
 	static unsigned int frame;
 	int i, visdot, mplex, lvl, dframe, fade, fadeout, dp;
-	unsigned char *dptr, digit, fademask;
-
-	fademask = mode_fademask[mode];
+	unsigned char *dptr, digit;
+	struct rtc_time tm;
 
 	if(mode == MODE_CLOCK) {
 		/* dot is always in the seconds tube when in clock mode */
 		dp = 4;
 		visdot = 1;
+
+		rtc_get_time_bcd(&tm);
+		setdigit(0, tm.hour >> 4);
+		setdigit(1, tm.hour & 0xf);
+		setdigit(2, tm.min >> 4);
+		setdigit(3, tm.min & 0xf);
+		setdigit(4, tm.sec >> 4);
+		setdigit(5, tm.sec & 0xf);
 	} else {
 		dp = dotpos;
 		visdot = dotpos >= 0 && dotpos < 6;
@@ -314,12 +294,4 @@ static void update_display(void)
 		shiftout(i, (dptr[0] & 0xf) | (dptr[1] << 4));
 		dptr += 2;
 	}
-}
-
-static void setclock(int hr, int min, int sec)
-{
-}
-
-static void setdate(int day, int mon, int year)
-{
 }
