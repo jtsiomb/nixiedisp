@@ -9,6 +9,8 @@
 #include "ds1302rtc.h"
 #include "config.h"
 
+#define SEP_LEVELS	128
+
 #define FADE_TIME	1023
 #define HALF_FADE	511
 #define FADE_SHIFT	5
@@ -16,6 +18,7 @@
 static void proc_cmd(char *input);
 static void setdigit(int idx, unsigned char val);
 static void update_display(void);
+static void cycle_disp(void);
 
 enum { MODE_CLOCK, MODE_NUM };
 
@@ -23,9 +26,12 @@ static int mode;
 static int echo, blank;
 static unsigned char disp[7], prev[6], fdisp[6];
 static unsigned char glevel = 15, level[7] = {15, 15, 15, 15, 15, 15, 15};
+static unsigned char sep_level = SEP_LEVELS / 8;
 static unsigned int fade_time[6];
 static unsigned char fademask = 0xff;
 static int dotpos = -1;
+
+static struct rtc_time tm;
 
 static char input[128];
 static unsigned char inp_cidx;
@@ -37,7 +43,7 @@ int main(void)
 	DDRB = ~PB_RTC_DATA;	/* port B all outputs except the RTC data line */
 	PORTB = 0;
 	DDRC = 0xff;			/* port C all outputs */
-	PORTC = PC_HRSEP;		/* clock mode is default, enable hour separator LEDs */
+	PORTC = 0;
 	DDRD = 0xff;			/* port D all outputs */
 	PORTD = 0;
 
@@ -46,6 +52,8 @@ int main(void)
 	sei();
 
 	rtc_init();
+
+	cycle_disp();
 
 	for(;;) {
 		if(have_input()) {
@@ -64,8 +72,12 @@ int main(void)
 			}
 		}
 
+		rtc_get_time_bcd(&tm);
+		if(tm.hour == 6 && tm.min == 0 && tm.sec == 0) {
+			cycle_disp();
+		}
+
 		update_display();
-		_delay_us(128);
 	}
 	return 0;
 }
@@ -84,6 +96,7 @@ static const char *helpstr =
 	" s <hr>:<min>.<sec>: set clock\n"
 	" d <day>/<mon>/<year>: set date\n"
 	" L <level>: global intensity level (0-15)\n"
+	" H <level>: hour separator intensity level (0-127)\n"
 	" x <mask>: per-digit cross-fade mask (0: all disable, 0x3f: all enable)\n"
 	" ?/h: print command help\n";
 
@@ -114,12 +127,12 @@ static void proc_cmd(char *input)
 		if(input[1] == 'c') {
 			printf("OK clock mode\n");
 			mode = MODE_CLOCK;
-			PORTC |= PC_HRSEP;
 		} else if(input[1] == 'n') {
 			printf("OK number mode\n");
 			mode = MODE_NUM;
 			PORTC &= ~PC_HRSEP;
 			disp[0] = disp[1] = disp[2] = disp[3] = disp[4] = disp[5] = 0xff;
+			dotpos = -1;
 		} else {
 			printf("ERR invalid mode: '%s'\n", args);
 		}
@@ -162,6 +175,16 @@ static void proc_cmd(char *input)
 		glevel = tmp;
 		break;
 
+	case 'H':
+		tmp = strtol(args, &endp, 10);
+		if(endp == args || tmp < 0 || tmp >= SEP_LEVELS) {
+			printf("ERR invalid hour separator intensity: \"%s\"\n", args);
+			break;
+		}
+		printf("OK hour separator intensity: %d\n", tmp);
+		sep_level = tmp;
+		break;
+
 	case 'x':
 		tmp = strtol(args, &endp, 0);
 		if(endp == args) {
@@ -170,6 +193,11 @@ static void proc_cmd(char *input)
 		}
 		printf("OK fade mask: %02x\n", tmp);
 		fademask = tmp;
+		break;
+
+	case 'c':
+		printf("OK cycling display\n");
+		cycle_disp();
 		break;
 
 	default:
@@ -232,24 +260,29 @@ static void update_display(void)
 	static unsigned int frame;
 	int i, visdot, mplex, lvl, dframe, fade, fadeout, dp;
 	unsigned char *dptr, digit;
-	struct rtc_time tm;
 
 	if(mode == MODE_CLOCK) {
 		/* dot is always in the seconds tube when in clock mode */
 		dp = 4;
 		visdot = 1;
 
-		rtc_get_time_bcd(&tm);
-		setdigit(0, tm.hour >> 4);
+		setdigit(0, tm.hour & 0xf0 ? tm.hour >> 4 : 0xf);
 		setdigit(1, tm.hour & 0xf);
 		setdigit(2, tm.min >> 4);
 		setdigit(3, tm.min & 0xf);
 		setdigit(4, tm.sec >> 4);
 		setdigit(5, tm.sec & 0xf);
+
+		if((frame & (SEP_LEVELS - 1)) <= sep_level) {
+			PORTC |= PC_HRSEP;
+		} else {
+			PORTC = 0;
+		}
 	} else {
 		dp = dotpos;
 		visdot = dotpos >= 0 && dotpos < 6;
 	}
+
 
 	/* mplex is used to multiplex the decimal point 1/4 of the time with the
 	 * digits the rest 3/4. if we ignite both the decimal point and a digit in
@@ -262,6 +295,7 @@ static void update_display(void)
 	 * to display a digit.
 	 */
 	dframe = frame & 0xf;
+
 
 	if(!visdot || mplex) {
 		/* dot is not visible at all, or it is, but we're in the 3/4 of the time
@@ -301,5 +335,36 @@ static void update_display(void)
 	for(i=0; i<3; i++) {
 		shiftout(i, (dptr[0] & 0xf) | (dptr[1] << 4));
 		dptr += 2;
+	}
+}
+
+static void cycle_disp(void)
+{
+	int i, j;
+
+	PORTC = 0;
+	PORTD = 0;
+
+	for(i=0; i<10; i++) {
+		for(j=0; j<3; j++) {
+			shiftout(j, i | (i << 4));
+		}
+		_delay_ms(100);
+	}
+
+	shiftout(0, 0xff);
+	shiftout(1, 0xff);
+	shiftout(2, 0xff);
+
+	PORTD = 0xff;
+	_delay_ms(120);
+	PORTD = 0;
+
+	for(i=0; i<10; i++) {
+		int x = 9 - i;
+		for(j=0; j<3; j++) {
+			shiftout(j, x | (x << 4));
+		}
+		_delay_ms(100);
 	}
 }
