@@ -31,6 +31,7 @@ static unsigned int fade_time[6];
 static unsigned char fademask = 0xff;
 static int dotpos = -1;
 static int opt_clk0, opt_sec = 1;
+static struct rtc_time cycle_time = {6, 0, 0};	/* default display cycling at 6am */
 
 static struct rtc_time tm;
 
@@ -74,7 +75,7 @@ int main(void)
 		}
 
 		rtc_get_time_bcd(&tm);
-		if(tm.hour == 6 && tm.min == 0 && tm.sec == 0) {
+		if(tm.hour == cycle_time.hour && tm.min == cycle_time.min && tm.sec == cycle_time.sec) {
 			cycle_disp();
 		}
 
@@ -102,6 +103,7 @@ static const char *helpstr =
 	" H <level>: hour separator intensity level (0-127)\n"
 	" x <mask>: per-digit cross-fade mask (0: all disable, 0x3f: all enable)\n"
 	" c: run anti-cathode poisoning cycle\n"
+	" C <hr>:<min>.<sec>: set time of day to run anti-cathode poisoning cycle\n"
 	" ?/h: print command help\n";
 
 static void proc_cmd(char *input)
@@ -119,26 +121,34 @@ static void proc_cmd(char *input)
 
 	switch(cmd) {
 	case 'e':
-		echo = atoi(args);
+		if(args[0] != '?') echo = atoi(args);
 		printf("OK echo %s\n", echo ? "on" : "off");
 		break;
 
 	case 'b':
+		if(args[0] == '?') {
+			printf("OK display blanking: %s\n", blank ? "on" : "off");
+			break;
+		}
 		blank = atoi(args);
 		printf("OK %sblanking display\n", blank ? "" : "un");
 		break;
 
 	case 'z':
-		opt_clk0 = atoi(args);
+		if(args[0] != '?') opt_clk0 = atoi(args);
 		printf("OK clock leading zero %s\n", opt_clk0 ? "on" : "off");
 		break;
 
 	case 'S':
-		opt_sec = atoi(args);
+		if(args[0] != '?') opt_sec = atoi(args);
 		printf("OK seconds display %s\n", opt_sec ? "on" : "off");
 		break;
 
 	case 'm':
+		if(args[0] == '?') {
+			printf("OK current mode: %s\n", mode == MODE_CLOCK ? "clock" : "number");
+			break;
+		}
 		if(input[1] == 'c') {
 			printf("OK clock mode\n");
 			mode = MODE_CLOCK;
@@ -154,16 +164,47 @@ static void proc_cmd(char *input)
 		break;
 
 	case 's':
+		if(args[0] == '?') {
+			struct rtc_time tm;
+			rtc_get_time(&tm);
+			printf("OK current time: %02d:%02d.%02d\n", tm.hour, tm.min, tm.sec);
+			break;
+		}
 		sec = 0;
-		if(sscanf(args, "%d:%d.%d", &hr, &min, &sec) < 2) {
+		if(sscanf(args, "%d:%d.%d", &hr, &min, &sec) < 2 || hr < 0 || hr >= 24 ||
+				min < 0 || min >= 60 || sec < 0 || sec >= 60) {
 			printf("ERR invalid time string: \"%s\"\n", args);
 			break;
 		}
 		rtc_set_time(hr, min, sec);
-		printf("OK clock set\n");
+		printf("OK clock set %02d:%02d.%02d\n", hr, min, sec);
+		break;
+
+	case 'C':
+		if(args[0] == '?') {
+			printf("OK current anti-cathode poisoning cycle time: %02d:%02d.%02d\n",
+					cycle_time.hour, cycle_time.min, cycle_time.sec);
+			break;
+		}
+		sec = 0;
+		if(sscanf(args, "%d:%d.%d", &hr, &min, &sec) < 2 || hr < 0 || hr >= 24 ||
+				min < 0 || min >= 60 || sec < 0 || sec >= 60) {
+			printf("ERR invalid time string: \"%s\"\n", args);
+			break;
+		}
+		cycle_time.hour = rtc_bin2bcd(hr);
+		cycle_time.min = rtc_bin2bcd(min);
+		cycle_time.sec = rtc_bin2bcd(sec);
+		printf("OK anti-cathode poisoning cycling set for %02d:%02d.%02d\n", hr, min, sec);
 		break;
 
 	case 'd':
+		if(args[0] == '?') {
+			struct rtc_date date;
+			rtc_get_date(&date);
+			printf("OK current date: %d/%d/%d\n", date.day, date.month, date.year);
+			break;
+		}
 		if(sscanf(args, "%d/%d/%d", &day, &mon, &year) != 3 || day < 1 || day > 31 ||
 				mon < 1 || mon > 12 || year < 0) {
 			printf("ERR invalid date string: \"%s\"\n", args);
@@ -171,63 +212,73 @@ static void proc_cmd(char *input)
 		}
 		if(year < 100) year += 2000;
 		rtc_set_date(day, mon, year);
-		printf("OK date set\n");
+		printf("OK date set to %d/%d/%d\n", day, mon, year);
+		break;
+
+	case 'L':
+		if(args[0] != '?') {
+			tmp = strtol(args, &endp, 10);
+			if(endp == args || tmp < 0 || tmp > 15) {
+				printf("ERR invalid intensity level: \"%s\"\n", args);
+				break;
+			}
+			glevel = tmp;
+		}
+		printf("OK global intensity: %d\n", glevel);
+		break;
+
+	case 'H':
+		if(args[0] != '?') {
+			tmp = strtol(args, &endp, 10);
+			if(endp == args || tmp < 0 || tmp >= SEP_LEVELS) {
+				printf("ERR invalid hour separator intensity: \"%s\"\n", args);
+				break;
+			}
+			sep_level = tmp;
+		}
+		printf("OK hour separator intensity: %d\n", sep_level);
+		break;
+
+	case 'l':
+		if(args[0] != '?') {
+			tmp = strtol(args, &endp, 0);
+			if(endp == args || (tmp & 0xff000000)) {
+				printf("ERR invalid intensity string: \"%s\"\n", args);
+				break;
+			}
+			for(i=0; i<6; i++) {
+				level[i] = (tmp >> 20) & 0xf;
+				tmp <<= 4;
+			}
+		}
+		printf("OK per digit intensities:");
+		for(i=0; i<6; i++) {
+			printf(" %d", (unsigned int)level[i]);
+		}
+		putchar('\n');
+		break;
+
+	case 'x':
+		if(args[0] != '?') {
+			tmp = strtol(args, &endp, 0);
+			if(endp == args) {
+				printf("ERR invalid fade mask: \"%s\"\n", args);
+				break;
+			}
+			fademask = tmp;
+		}
+		printf("OK fade mask: %02x\n", fademask);
+		break;
+
+	case 'c':
+		printf("OK cycling display\n");
+		cycle_disp();
 		break;
 
 	case '?':
 	case 'h':
 		puts("OK command help");
 		puts(helpstr);
-		break;
-
-	case 'L':
-		tmp = strtol(args, &endp, 10);
-		if(endp == args || tmp < 0 || tmp > 15) {
-			printf("ERR invalid intensity level: \"%s\"\n", args);
-			break;
-		}
-		glevel = tmp;
-		printf("OK global intensity: %d\n", glevel);
-		break;
-
-	case 'H':
-		tmp = strtol(args, &endp, 10);
-		if(endp == args || tmp < 0 || tmp >= SEP_LEVELS) {
-			printf("ERR invalid hour separator intensity: \"%s\"\n", args);
-			break;
-		}
-		sep_level = tmp;
-		printf("OK hour separator intensity: %d\n", sep_level);
-		break;
-
-	case 'l':
-		tmp = strtol(args, &endp, 0);
-		if(endp == args || (tmp & 0xff000000)) {
-			printf("ERR invalid intensity string: \"%s\"\n", args);
-			break;
-		}
-		printf("OK per digit intensities:");
-		for(i=0; i<6; i++) {
-			level[i] = (tmp >> 20) & 0xf;
-			tmp <<= 4;
-			printf(" %x", (unsigned int)level[i]);
-		}
-		putchar('\n');
-		break;
-
-	case 'x':
-		tmp = strtol(args, &endp, 0);
-		if(endp == args) {
-			printf("ERR invalid fade mask: \"%s\"\n", args);
-			break;
-		}
-		printf("OK fade mask: %02lx\n", tmp);
-		fademask = tmp;
-		break;
-
-	case 'c':
-		printf("OK cycling display\n");
-		cycle_disp();
 		break;
 
 	default:
