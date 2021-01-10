@@ -30,6 +30,7 @@ static unsigned char sep_level = SEP_LEVELS / 8;
 static unsigned int fade_time[6];
 static unsigned char fademask = 0xff;
 static int dotpos = -1;
+static int opt_clk0;
 
 static struct rtc_time tm;
 
@@ -93,11 +94,13 @@ static const char *helpstr =
 	" e 0|1: turn echo on/off\n"
 	" b 0|1: blank/unblank display\n"
 	" m n|c: change display mode (n: number, c: clock)\n"
+	" z 0|1: turn leading zero for single-digit hours on/off (clock mode)\n"
 	" s <hr>:<min>.<sec>: set clock\n"
 	" d <day>/<mon>/<year>: set date\n"
 	" L <level>: global intensity level (0-15)\n"
 	" H <level>: hour separator intensity level (0-127)\n"
 	" x <mask>: per-digit cross-fade mask (0: all disable, 0x3f: all enable)\n"
+	" c: run anti-cathode poisoning cycle\n"
 	" ?/h: print command help\n";
 
 static void proc_cmd(char *input)
@@ -119,8 +122,13 @@ static void proc_cmd(char *input)
 		break;
 
 	case 'b':
-		printf("OK %sblanking display\n", blank ? "" : "un");
 		blank = atoi(args);
+		printf("OK %sblanking display\n", blank ? "" : "un");
+		break;
+
+	case 'z':
+		opt_clk0 = atoi(args);
+		printf("OK clock leading zero %s\n", opt_clk0 ? "on" : "off");
 		break;
 
 	case 'm':
@@ -261,12 +269,28 @@ static void update_display(void)
 	int i, visdot, mplex, lvl, dframe, fade, fadeout, dp;
 	unsigned char *dptr, digit;
 
+	/* mplex is used to multiplex the decimal point 1/4 of the time with the
+	 * digits the rest 3/4. if we ignite both the decimal point and a digit in
+	 * the same tube, it leads to a fuzzy glow around the decimal point
+	 */
+	mplex = ++frame & 3;
+
+	if(blank) {
+		shiftout(0, 0xff);
+		shiftout(1, 0xff);
+		shiftout(2, 0xff);
+		PORTC = 0;
+		PORTD = 0;
+		return;
+	}
+
+
 	if(mode == MODE_CLOCK) {
 		/* dot is always in the seconds tube when in clock mode */
 		dp = 4;
 		visdot = 1;
 
-		setdigit(0, tm.hour & 0xf0 ? tm.hour >> 4 : 0xf);
+		setdigit(0, opt_clk0 || (tm.hour & 0xf0) ? tm.hour >> 4 : 0xf);
 		setdigit(1, tm.hour & 0xf);
 		setdigit(2, tm.min >> 4);
 		setdigit(3, tm.min & 0xf);
@@ -284,18 +308,11 @@ static void update_display(void)
 	}
 
 
-	/* mplex is used to multiplex the decimal point 1/4 of the time with the
-	 * digits the rest 3/4. if we ignite both the decimal point and a digit in
-	 * the same tube, it leads to a fuzzy glow around the decimal point
-	 */
-	mplex = ++frame & 3;
-
 	/* handle dimming by splitting a display cycle into 16 sections, and
 	 * keeping the tube off for a fraction of those, even if it's supposed
 	 * to display a digit.
 	 */
 	dframe = frame & 0xf;
-
 
 	if(!visdot || mplex) {
 		/* dot is not visible at all, or it is, but we're in the 3/4 of the time
