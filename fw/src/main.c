@@ -105,7 +105,8 @@ static const char *helpstr =
 
 static void proc_cmd(char *input)
 {
-	int cmd, hr, min, sec, day, mon, year, tmp;
+	int i, cmd, hr, min, sec, day, mon, year;
+	long tmp;
 	char *args, *endp;
 
 	while(*input && isspace(*input)) input++;
@@ -179,8 +180,8 @@ static void proc_cmd(char *input)
 			printf("ERR invalid intensity level: \"%s\"\n", args);
 			break;
 		}
-		printf("OK global intensity: %d\n", tmp);
 		glevel = tmp;
+		printf("OK global intensity: %d\n", glevel);
 		break;
 
 	case 'H':
@@ -189,8 +190,23 @@ static void proc_cmd(char *input)
 			printf("ERR invalid hour separator intensity: \"%s\"\n", args);
 			break;
 		}
-		printf("OK hour separator intensity: %d\n", tmp);
 		sep_level = tmp;
+		printf("OK hour separator intensity: %d\n", sep_level);
+		break;
+
+	case 'l':
+		tmp = strtol(args, &endp, 0);
+		if(endp == args || (tmp & 0xff000000)) {
+			printf("ERR invalid intensity string: \"%s\"\n", args);
+			break;
+		}
+		printf("OK per digit intensities:");
+		for(i=0; i<6; i++) {
+			level[i] = (tmp >> 20) & 0xf;
+			tmp <<= 4;
+			printf(" %x", (unsigned int)level[i]);
+		}
+		putchar('\n');
 		break;
 
 	case 'x':
@@ -199,7 +215,7 @@ static void proc_cmd(char *input)
 			printf("ERR invalid fade mask: \"%s\"\n", args);
 			break;
 		}
-		printf("OK fade mask: %02x\n", tmp);
+		printf("OK fade mask: %02lx\n", tmp);
 		fademask = tmp;
 		break;
 
@@ -319,8 +335,8 @@ static void update_display(void)
 		 * when we display digits
 		 */
 
-		lvl = glevel;	/* take global dimming into account */
 		for(i=0; i<6; i++) {
+			lvl = glevel * level[i] >> 4;
 
 			if((fademask & (0x20 >> i)) && fade_time[i]) {
 				fadeout = fade_time[i] > HALF_FADE ? 1 : 0;
