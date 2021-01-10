@@ -30,7 +30,7 @@ static unsigned char sep_level = SEP_LEVELS / 8;
 static unsigned int fade_time[6];
 static unsigned char fademask = 0xff;
 static int dotpos = -1;
-static int opt_clk0;
+static int opt_clk0, opt_sec = 1;
 
 static struct rtc_time tm;
 
@@ -95,6 +95,7 @@ static const char *helpstr =
 	" b 0|1: blank/unblank display\n"
 	" m n|c: change display mode (n: number, c: clock)\n"
 	" z 0|1: turn leading zero for single-digit hours on/off (clock mode)\n"
+	" S 0|1: turn seconds display on/off (clock mode)\n"
 	" s <hr>:<min>.<sec>: set clock\n"
 	" d <day>/<mon>/<year>: set date\n"
 	" L <level>: global intensity level (0-15)\n"
@@ -130,6 +131,11 @@ static void proc_cmd(char *input)
 	case 'z':
 		opt_clk0 = atoi(args);
 		printf("OK clock leading zero %s\n", opt_clk0 ? "on" : "off");
+		break;
+
+	case 'S':
+		opt_sec = atoi(args);
+		printf("OK seconds display %s\n", opt_sec ? "on" : "off");
 		break;
 
 	case 'm':
@@ -302,16 +308,24 @@ static void update_display(void)
 
 
 	if(mode == MODE_CLOCK) {
-		/* dot is always in the seconds tube when in clock mode */
-		dp = 4;
-		visdot = 1;
-
 		setdigit(0, opt_clk0 || (tm.hour & 0xf0) ? tm.hour >> 4 : 0xf);
 		setdigit(1, tm.hour & 0xf);
 		setdigit(2, tm.min >> 4);
 		setdigit(3, tm.min & 0xf);
-		setdigit(4, tm.sec >> 4);
-		setdigit(5, tm.sec & 0xf);
+		if(opt_sec) {
+			setdigit(4, tm.sec >> 4);
+			setdigit(5, tm.sec & 0xf);
+
+			/* dot is always in the seconds tube when in clock mode */
+			dp = 4;
+			visdot = 1;
+		} else {
+			setdigit(4, 0xf);
+			setdigit(5, 0xf);
+
+			dp = -1;
+			visdot = 0;
+		}
 
 		if((frame & (SEP_LEVELS - 1)) <= sep_level) {
 			PORTC |= PC_HRSEP;
