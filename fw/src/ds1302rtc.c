@@ -17,7 +17,7 @@
 #define IN	0
 #define OUT	1
 
-#define CMD_RAM_BIT		0x40
+#define SRAM_BASE		0xc0
 #define CMD_RD_BIT		0x01
 
 #define REG_SEC		0x80
@@ -132,12 +132,12 @@ void rtc_get_date(struct rtc_date *date)
 
 void rtc_store(int addr, unsigned char byte)
 {
-	write_reg(addr | 0x80 | CMD_RAM_BIT, byte);
+	write_reg(SRAM_BASE | (addr << 1), byte);
 }
 
 unsigned char rtc_load(int addr)
 {
-	return read_reg(addr | 0x80 | CMD_RAM_BIT);
+	return read_reg(SRAM_BASE | (addr << 1));
 }
 
 #define DATA_CLK_DELAY asm volatile("nop\n\tnop\n\t")

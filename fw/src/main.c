@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 #include <ctype.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -8,6 +9,8 @@
 #include "serial.h"
 #include "ds1302rtc.h"
 #include "config.h"
+
+#define SRAM_MAGIC	"NIXIEDISP1"
 
 #define SEP_LEVELS	128
 
@@ -19,23 +22,45 @@ static void proc_cmd(char *input);
 static void setdigit(int idx, unsigned char val);
 static void update_display(void);
 static void cycle_disp(void);
+static int boolarg(char *args, unsigned char *flags, unsigned char bit);
+static int load_opt(void);
+static void save_opt(void);
+
+enum {
+	OPT_CLK0	= 1,
+	OPT_CLKSEC	= 2
+};
+
+struct options {
+	char magic[10];
+	unsigned char level[6];
+	unsigned char glevel, dot_level, sep_level;
+	unsigned char fademask;
+	unsigned char flags;
+	unsigned char cycle_time[3];
+};
+
+static struct options def_opt = {
+	SRAM_MAGIC,
+	{15, 15, 15, 15, 15, 15},
+	15, 15, SEP_LEVELS / 8,		/* glevel, dot_level, sep_level */
+	0xff,			/* fademask */
+	0x02,			/* flags: CLK0=0, CLKSEC=1 */
+	{6, 0, 0}		/* anti-cathode poisoning cycle schedule (6am) */
+};
+static struct options opt;
 
 enum { MODE_CLOCK, MODE_NUM };
 
 static int mode;
-static int echo, blank;
+static unsigned char echo, blank;
 static unsigned char disp[7], prev[6], fdisp[6];
-static unsigned char glevel = 15, level[7] = {15, 15, 15, 15, 15, 15, 15};
-static unsigned char sep_level = SEP_LEVELS / 8;
 static unsigned int fade_time[6];
-static unsigned char fademask = 0xff;
 static int dotpos = -1;
-static int opt_clk0, opt_sec = 1;
-static struct rtc_time cycle_time = {6, 0, 0};	/* default display cycling at 6am */
 
 static struct rtc_time tm;
 
-static char input[128];
+static char input[64];
 static unsigned char inp_cidx;
 
 
@@ -57,6 +82,11 @@ int main(void)
 
 	cycle_disp();
 
+	if(load_opt() == -1) {
+		opt = def_opt;
+		save_opt();
+	}
+
 	for(;;) {
 		if(have_input()) {
 			int c = getchar();
@@ -75,7 +105,7 @@ int main(void)
 		}
 
 		rtc_get_time_bcd(&tm);
-		if(tm.hour == cycle_time.hour && tm.min == cycle_time.min && tm.sec == cycle_time.sec) {
+		if(tm.hour == opt.cycle_time[0] && tm.min == opt.cycle_time[1] && tm.sec == opt.cycle_time[2]) {
 			cycle_disp();
 		}
 
@@ -86,25 +116,24 @@ int main(void)
 
 static const char *helpstr =
 	"nixiedisp firmware v" VERSTR " by John Tsiombikas <nuclear@member.fsf.org>\n"
-	"nixiedisp is free hardware/software, released under the GNU GPLv3 or later\n"
-	"      web: http://nuclear.mutantstargoat.com/hw/nixiedisp\n"
-	" git repo: https://github.com/jtsiomb/nixiedisp\n"
+	"nixiedisp is free hardware/software: GNU GPLv3 or later\n"
+	"  web: http://nuclear.mutantstargoat.com/hw/nixiedisp\n"
+	"  git: https://github.com/jtsiomb/nixiedisp\n"
 	"\n"
 	"Commands:\n"
 	" <num>: set number\n"
-	" e 0|1: turn echo on/off\n"
-	" b 0|1: blank/unblank display\n"
-	" m n|c: change display mode (n: number, c: clock)\n"
-	" z 0|1: turn leading zero for single-digit hours on/off (clock mode)\n"
-	" S 0|1: turn seconds display on/off (clock mode)\n"
+	" e 0|1: echo\n"
+	" b 0|1: blank display\n"
+	" m n|c: mode (n: number, c: clock)\n"
+	" z 0|1: clock leading zero\n"
+	" S 0|1: clock seconds display\n"
 	" s <hr>:<min>.<sec>: set clock\n"
 	" d <day>/<mon>/<year>: set date\n"
 	" L <level>: global intensity level (0-15)\n"
 	" H <level>: hour separator intensity level (0-127)\n"
-	" x <mask>: per-digit cross-fade mask (0: all disable, 0x3f: all enable)\n"
+	" x <mask>: fade mask (6 bits)\n"
 	" c: run anti-cathode poisoning cycle\n"
-	" C <hr>:<min>.<sec>: set time of day to run anti-cathode poisoning cycle\n"
-	" ?/h: print command help\n";
+	" C <hr>:<min>.<sec>: set time to run cycle\n";
 
 static void proc_cmd(char *input)
 {
@@ -121,7 +150,9 @@ static void proc_cmd(char *input)
 
 	switch(cmd) {
 	case 'e':
-		if(args[0] != '?') echo = atoi(args);
+		if(args[0] != '?') {
+			if(boolarg(args, &echo, 1) == -1) break;
+		}
 		printf("OK echo %s\n", echo ? "on" : "off");
 		break;
 
@@ -130,18 +161,24 @@ static void proc_cmd(char *input)
 			printf("OK display blanking: %s\n", blank ? "on" : "off");
 			break;
 		}
-		blank = atoi(args);
+		if(boolarg(args, &blank, 1) == -1) break;
 		printf("OK %sblanking display\n", blank ? "" : "un");
 		break;
 
 	case 'z':
-		if(args[0] != '?') opt_clk0 = atoi(args);
-		printf("OK clock leading zero %s\n", opt_clk0 ? "on" : "off");
+		if(args[0] != '?') {
+			if(boolarg(args, &opt.flags, OPT_CLK0) == -1) break;
+			save_opt();
+		}
+		printf("OK clock leading zero %s\n", opt.flags & OPT_CLK0 ? "on" : "off");
 		break;
 
 	case 'S':
-		if(args[0] != '?') opt_sec = atoi(args);
-		printf("OK seconds display %s\n", opt_sec ? "on" : "off");
+		if(args[0] != '?') {
+			if(boolarg(args, &opt.flags, OPT_CLKSEC) == -1) break;
+			save_opt();
+		}
+		printf("OK seconds display %s\n", opt.flags & OPT_CLKSEC ? "on" : "off");
 		break;
 
 	case 'm':
@@ -183,7 +220,7 @@ static void proc_cmd(char *input)
 	case 'C':
 		if(args[0] == '?') {
 			printf("OK current anti-cathode poisoning cycle time: %02d:%02d.%02d\n",
-					cycle_time.hour, cycle_time.min, cycle_time.sec);
+					(int)opt.cycle_time[0], (int)opt.cycle_time[1], (int)opt.cycle_time[2]);
 			break;
 		}
 		sec = 0;
@@ -192,10 +229,11 @@ static void proc_cmd(char *input)
 			printf("ERR invalid time string: \"%s\"\n", args);
 			break;
 		}
-		cycle_time.hour = rtc_bin2bcd(hr);
-		cycle_time.min = rtc_bin2bcd(min);
-		cycle_time.sec = rtc_bin2bcd(sec);
+		opt.cycle_time[0] = rtc_bin2bcd(hr);
+		opt.cycle_time[1] = rtc_bin2bcd(min);
+		opt.cycle_time[2] = rtc_bin2bcd(sec);
 		printf("OK anti-cathode poisoning cycling set for %02d:%02d.%02d\n", hr, min, sec);
+		save_opt();
 		break;
 
 	case 'd':
@@ -222,9 +260,10 @@ static void proc_cmd(char *input)
 				printf("ERR invalid intensity level: \"%s\"\n", args);
 				break;
 			}
-			glevel = tmp;
+			opt.glevel = tmp;
+			save_opt();
 		}
-		printf("OK global intensity: %d\n", glevel);
+		printf("OK global intensity: %d\n", opt.glevel);
 		break;
 
 	case 'H':
@@ -234,9 +273,10 @@ static void proc_cmd(char *input)
 				printf("ERR invalid hour separator intensity: \"%s\"\n", args);
 				break;
 			}
-			sep_level = tmp;
+			opt.sep_level = tmp;
+			save_opt();
 		}
-		printf("OK hour separator intensity: %d\n", sep_level);
+		printf("OK hour separator intensity: %d\n", opt.sep_level);
 		break;
 
 	case 'l':
@@ -247,13 +287,14 @@ static void proc_cmd(char *input)
 				break;
 			}
 			for(i=0; i<6; i++) {
-				level[i] = (tmp >> 20) & 0xf;
+				opt.level[i] = (tmp >> 20) & 0xf;
 				tmp <<= 4;
 			}
+			save_opt();
 		}
 		printf("OK per digit intensities:");
 		for(i=0; i<6; i++) {
-			printf(" %d", (unsigned int)level[i]);
+			printf(" %d", (unsigned int)opt.level[i]);
 		}
 		putchar('\n');
 		break;
@@ -265,14 +306,21 @@ static void proc_cmd(char *input)
 				printf("ERR invalid fade mask: \"%s\"\n", args);
 				break;
 			}
-			fademask = tmp;
+			opt.fademask = tmp;
+			save_opt();
 		}
-		printf("OK fade mask: %02x\n", fademask);
+		printf("OK fade mask: %02x\n", opt.fademask);
 		break;
 
 	case 'c':
 		printf("OK cycling display\n");
 		cycle_disp();
+		break;
+
+	case 'R':
+		printf("OK resetting options\n");
+		opt = def_opt;
+		save_opt();
 		break;
 
 	case '?':
@@ -282,6 +330,7 @@ static void proc_cmd(char *input)
 		break;
 
 	default:
+		printf("FOO\n");
 		if(isdigit(cmd) || cmd == '.') {
 			int c, didx;
 			char *end;
@@ -359,11 +408,11 @@ static void update_display(void)
 
 
 	if(mode == MODE_CLOCK) {
-		setdigit(0, opt_clk0 || (tm.hour & 0xf0) ? tm.hour >> 4 : 0xf);
+		setdigit(0, (opt.flags & OPT_CLK0) || (tm.hour & 0xf0) ? tm.hour >> 4 : 0xf);
 		setdigit(1, tm.hour & 0xf);
 		setdigit(2, tm.min >> 4);
 		setdigit(3, tm.min & 0xf);
-		if(opt_sec) {
+		if(opt.flags & OPT_CLKSEC) {
 			setdigit(4, tm.sec >> 4);
 			setdigit(5, tm.sec & 0xf);
 
@@ -378,7 +427,7 @@ static void update_display(void)
 			visdot = 0;
 		}
 
-		if((frame & (SEP_LEVELS - 1)) <= sep_level) {
+		if((frame & (SEP_LEVELS - 1)) <= opt.sep_level) {
 			PORTC |= PC_HRSEP;
 		} else {
 			PORTC = 0;
@@ -401,9 +450,9 @@ static void update_display(void)
 		 */
 
 		for(i=0; i<6; i++) {
-			lvl = glevel * level[i] >> 4;
+			lvl = opt.glevel * opt.level[i] >> 4;
 
-			if((fademask & (0x20 >> i)) && fade_time[i]) {
+			if((opt.fademask & (0x20 >> i)) && fade_time[i]) {
 				fadeout = fade_time[i] > HALF_FADE ? 1 : 0;
 				fade = fadeout ? fade_time[i] - HALF_FADE : HALF_FADE - fade_time[i];
 				digit = fadeout ? prev[i] : disp[i];
@@ -421,7 +470,7 @@ static void update_display(void)
 		fdisp[0] = fdisp[1] = fdisp[2] = fdisp[3] = fdisp[4] = fdisp[5] = 0xff;
 	}
 
-	lvl = glevel * level[6] >> 4;
+	lvl = opt.glevel * opt.level[6] >> 4;
 	if(!mplex && visdot && dframe <= lvl) {
 		/* dot is visible and we're in the 1/4 of the time when we display the dot */
 		PORTD = PD_ADOT << dp;
@@ -464,5 +513,41 @@ static void cycle_disp(void)
 			shiftout(j, x | (x << 4));
 		}
 		_delay_ms(100);
+	}
+}
+
+static int boolarg(char *args, unsigned char *flags, unsigned char bit)
+{
+	if(!isdigit(args[0])) {
+		printf("ERR invalid boolean value \"%s\", expecting 0 or 1\n", args);
+		return -1;
+	}
+
+	if(*args == '0') {
+		*flags &= ~bit;
+	} else {
+		*flags |= bit;
+	}
+	return 0;
+}
+
+static int load_opt(void)
+{
+	int i;
+	unsigned char *ptr = (unsigned char*)&opt;
+
+	for(i=0; i<sizeof opt; i++) {
+		*ptr++ = rtc_load(i);
+	}
+	return memcmp(opt.magic, SRAM_MAGIC, sizeof opt.magic) == 0 ? 0 : -1;
+}
+
+static void save_opt(void)
+{
+	int i;
+	unsigned char *ptr = (unsigned char*)&opt;
+
+	for(i=0; i<sizeof opt; i++) {
+		rtc_store(i, *ptr++);
 	}
 }
