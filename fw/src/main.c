@@ -249,7 +249,7 @@ static void proc_cmd(char *input)
 			break;
 		}
 		if(year < 100) year += 2000;
-		rtc_set_date(day, mon, year);
+		rtc_set_date(year, mon, day);
 		printf("OK date set to %d/%d/%d\n", day, mon, year);
 		break;
 
@@ -330,7 +330,6 @@ static void proc_cmd(char *input)
 		break;
 
 	default:
-		printf("FOO\n");
 		if(isdigit(cmd) || cmd == '.') {
 			int c, didx;
 			char *end;
