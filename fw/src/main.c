@@ -13,7 +13,7 @@
 
 #define SRAM_MAGIC	"NIXIEDISP1"
 
-#define SEP_LEVELS	128
+#define SEP_LEVELS	64
 
 #define FADE_TIME	1023
 #define HALF_FADE	511
