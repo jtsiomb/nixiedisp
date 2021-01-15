@@ -133,7 +133,7 @@ static const char *helpstr =
 	" s <hr>:<min>.<sec>: set clock\n"
 	" d <day>/<mon>/<year>: set date\n"
 	" L <level>: global intensity level (0-15)\n"
-	" H <level>: hour separator intensity level (0-127)\n"
+	" H <level>: hour separator intensity level (0-63)\n"
 	" x <mask>: fade mask (6 bits)\n"
 	" t 0|1|r: timer stop/start/reset\n"
 	" c: run anti-cathode poisoning cycle\n"
