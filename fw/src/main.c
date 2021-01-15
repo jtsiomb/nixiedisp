@@ -8,6 +8,7 @@
 #include <util/delay.h>
 #include "serial.h"
 #include "ds1302rtc.h"
+#include "timer.h"
 #include "config.h"
 
 #define SRAM_MAGIC	"NIXIEDISP1"
@@ -50,7 +51,8 @@ static struct options def_opt = {
 };
 static struct options opt;
 
-enum { MODE_CLOCK, MODE_NUM };
+enum { MODE_CLOCK, MODE_NUM, MODE_TIMER };
+static const char *modename[] = {"clock", "number", "timer"};
 
 static int mode;
 static unsigned char echo, blank;
@@ -79,6 +81,7 @@ int main(void)
 	sei();
 
 	rtc_init();
+	timer_init();
 
 	cycle_disp();
 
@@ -124,7 +127,7 @@ static const char *helpstr =
 	" <num>: set number\n"
 	" e 0|1: echo\n"
 	" b 0|1: blank display\n"
-	" m n|c: mode (n: number, c: clock)\n"
+	" m n|c|t: mode (number/clock/timer)\n"
 	" z 0|1: clock leading zero\n"
 	" S 0|1: clock seconds display\n"
 	" s <hr>:<min>.<sec>: set clock\n"
@@ -132,6 +135,7 @@ static const char *helpstr =
 	" L <level>: global intensity level (0-15)\n"
 	" H <level>: hour separator intensity level (0-127)\n"
 	" x <mask>: fade mask (6 bits)\n"
+	" t 0|1|r: timer stop/start/reset\n"
 	" c: run anti-cathode poisoning cycle\n"
 	" C <hr>:<min>.<sec>: set time to run cycle\n";
 
@@ -183,17 +187,22 @@ static void proc_cmd(char *input)
 
 	case 'm':
 		if(args[0] == '?') {
-			printf("OK current mode: %s\n", mode == MODE_CLOCK ? "clock" : "number");
+			printf("OK current mode: %s\n", modename[mode]);
 			break;
 		}
-		if(input[1] == 'c') {
+		if(args[0] == 'c') {
 			printf("OK clock mode\n");
 			mode = MODE_CLOCK;
-		} else if(input[1] == 'n') {
+		} else if(args[0] == 'n') {
 			printf("OK number mode\n");
 			mode = MODE_NUM;
 			PORTC &= ~PC_HRSEP;
 			disp[0] = disp[1] = disp[2] = disp[3] = disp[4] = disp[5] = 0xff;
+			dotpos = -1;
+		} else if(args[0] == 't') {
+			printf("OK timer mode\n");
+			mode = MODE_TIMER;
+			PORTC &= ~PC_HRSEP;
 			dotpos = -1;
 		} else {
 			printf("ERR invalid mode: '%s'\n", args);
@@ -310,6 +319,25 @@ static void proc_cmd(char *input)
 			save_opt();
 		}
 		printf("OK fade mask: %02x\n", opt.fademask);
+		break;
+
+	case 't':
+		if(args[0] == '?') {
+			printf("OK timer: %lu\n", nticks);
+			break;
+		}
+		if(args[0] == '0') {
+			timer_stop();
+			printf("OK timer stopped\n");
+		} else if(args[0] == '1') {
+			timer_start();
+			printf("OK timer srtarted\n");
+		} else if(args[0] == 'r') {
+			timer_reset();
+			printf("OK timer reset\n");
+		} else {
+			printf("ERR invalid timer command: \"%s\"\n", args);
+		}
 		break;
 
 	case 'c':
