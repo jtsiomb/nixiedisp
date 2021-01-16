@@ -31,6 +31,7 @@ static int boolarg(char *args, unsigned char *flags, unsigned char bit);
 static int load_opt(void);
 static void save_opt(void);
 static void numchange(long delta);
+static void read_buttons(void);
 
 enum {
 	OPT_CLK0	= 1,
@@ -71,8 +72,7 @@ static struct rtc_date date;
 static char input[64];
 static unsigned char inp_cidx;
 
-static int bnignore;
-static unsigned char bnstate, prev_bnstate, bndiff;
+static unsigned char bnstate, bnpress, bnprev, bndiff;
 
 
 int main(void)
@@ -84,10 +84,6 @@ int main(void)
 	PORTC = PC_BNMASK;		/* enable button pullups */
 	DDRD = 0xff;			/* port D all outputs */
 	PORTD = 0;
-
-	/* enable pin change interrupts for the 3 buttons */
-	PCMSK1 = PCINT11 | PCINT12 | PCINT13;
-	PCICR = PCIE1;
 
 	/* init the serial port we use to talk to the host */
 	init_serial(38400);
@@ -120,18 +116,17 @@ int main(void)
 			}
 		}
 
-		if(bndiff) {
-			unsigned char bnpress = bndiff & bnstate;
+		read_buttons();
+
+		if(bnpress) {
 			if(bnpress & PC_BN_MODE) {
-				switch_mode((mode + 1) & 1);	/* switch between clock and timer */
-				bndiff &= ~PC_BN_MODE;
-				bnpress &= ~PC_BN_MODE;
+				switch_mode((mode + 1) % 3);
 			}
 
-			if(bndiff & ~PC_BN_MODE) {	/* if other buttons changed state... */
+			if(bnpress & ~PC_BN_MODE) {	/* if other buttons changed state... */
 				handle_button(bnpress & ~PC_BN_MODE);
 			}
-			bndiff = 0;
+			bnpress = 0;
 		}
 
 		if(bnstate & PC_BN_B) {
@@ -145,10 +140,6 @@ int main(void)
 		}
 
 		update_display();
-
-		if(bnignore) {
-			bnignore--;
-		}
 	}
 	return 0;
 }
@@ -389,12 +380,6 @@ static void proc_cmd(char *input)
 		}
 		break;
 
-	case 'B':
-		prev_bnstate = bnstate;
-		bnstate ^= PC_BN_B;
-		bndiff = PC_BN_B;
-		break;
-
 	case '?':
 	case 'h':
 		puts("OK command help");
@@ -494,7 +479,8 @@ static void handle_button(unsigned char pressed)
 	case MODE_NUM:
 		if(pressed & PC_BN_A) {
 			numchange(-1);
-		} else {
+		}
+		if(pressed & PC_BN_B) {
 			numchange(1);
 		}
 		break;
@@ -545,7 +531,7 @@ static void update_display(void)
 		shiftout(0, 0xff);
 		shiftout(1, 0xff);
 		shiftout(2, 0xff);
-		PORTC = 0;
+		PORTC &= ~PC_HRSEP;
 		PORTD = 0;
 		return;
 	}
@@ -562,7 +548,7 @@ static void update_display(void)
 			setdigit(4, date.year >> 4);
 			setdigit(5, date.year & 0xf);
 			dp = 0x14;
-			PORTC = 0;
+			PORTC &= ~PC_HRSEP;
 		} else {
 			/* otherwise show the time */
 			setdigit(0, (opt.flags & OPT_CLK0) || (tm.hour & 0xf0) ? tm.hour >> 4 : 0xf);
@@ -585,7 +571,7 @@ static void update_display(void)
 			if((frame & (SEP_LEVELS - 1)) <= opt.sep_level) {
 				PORTC |= PC_HRSEP;
 			} else {
-				PORTC = 0;
+				PORTC &= ~PC_HRSEP;
 			}
 		}
 		break;
@@ -669,7 +655,7 @@ static void cycle_disp(void)
 {
 	int i, j;
 
-	PORTC = 0;
+	PORTC &= ~PC_HRSEP;
 	PORTD = 0;
 
 	for(i=0; i<10; i++) {
@@ -753,15 +739,25 @@ static void numchange(long delta)
 	}
 }
 
-ISR(PCINT1_vect)
+static void read_buttons(void)
 {
-	if(bnignore) return;
+	static unsigned char cur, prev;
+	static int count;
 
-	prev_bnstate = bnstate;
-	bnstate = ~PINC & PC_BNMASK;
-	bndiff = bnstate ^ prev_bnstate;
+	prev = cur;
+	cur = ~PINC & PC_BNMASK;
 
-	if(bndiff) {
-		bnignore = DEBOUNCE_ITER;
+	if(cur == prev) {
+		count++;
+	} else {
+		count = 0;
+	}
+
+	if(count > DEBOUNCE_ITER) {
+		bnprev = bnstate;
+		bnstate = cur;
+		bndiff = bnstate ^ bnprev;
+		bnpress = bndiff & bnstate;
+		count = 0;
 	}
 }
