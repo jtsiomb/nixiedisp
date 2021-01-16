@@ -1,7 +1,7 @@
 #ifndef TIMER_H_
 #define TIMER_H_
 
-extern unsigned long nticks, n10ticks;
+extern unsigned long nticks;
 
 void timer_init(void);
 void timer_start(void);

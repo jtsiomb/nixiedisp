@@ -20,6 +20,7 @@
 #define FADE_SHIFT	5
 
 static void proc_cmd(char *input);
+static int switch_mode(int m);
 static void setdigit(int idx, unsigned char val);
 static void update_display(void);
 static void cycle_disp(void);
@@ -190,23 +191,11 @@ static void proc_cmd(char *input)
 			printf("OK current mode: %s\n", modename[mode]);
 			break;
 		}
-		if(args[0] == 'c') {
-			printf("OK clock mode\n");
-			mode = MODE_CLOCK;
-		} else if(args[0] == 'n') {
-			printf("OK number mode\n");
-			mode = MODE_NUM;
-			PORTC &= ~PC_HRSEP;
-			disp[0] = disp[1] = disp[2] = disp[3] = disp[4] = disp[5] = 0xff;
-			dotpos = -1;
-		} else if(args[0] == 't') {
-			printf("OK timer mode\n");
-			mode = MODE_TIMER;
-			PORTC &= ~PC_HRSEP;
-			dotpos = -1;
-		} else {
+		if(switch_mode(args[0]) == -1) {
 			printf("ERR invalid mode: '%s'\n", args);
+			break;
 		}
+		printf("OK %s mode\n", modename[mode]);
 		break;
 
 	case 's':
@@ -377,6 +366,10 @@ static void proc_cmd(char *input)
 				}
 			}
 
+			if(end > input && *--end == '.') {
+				dotpos = 0;
+			}
+
 			/* fill the leading digits with 0xff, which means blank */
 			while(didx >= 0) {
 				disp[didx--] = 0xff;
@@ -386,6 +379,45 @@ static void proc_cmd(char *input)
 			printf("ERR unknown command: '%c'\n", cmd);
 		}
 	}
+}
+
+static int switch_mode(int m)
+{
+	switch(m) {
+	case 'c':
+		m = MODE_CLOCK;
+		break;
+	case 'n':
+		m = MODE_NUM;
+		break;
+	case 't':
+		m = MODE_TIMER;
+		break;
+	}
+
+	if(m == mode) return 0;
+
+	switch(m) {
+	case MODE_CLOCK:
+		break;
+
+	case MODE_NUM:
+		PORTC &= ~PC_HRSEP;
+		disp[0] = disp[1] = disp[2] = disp[3] = disp[4] = disp[5] = 0xff;
+		dotpos = -1;
+		break;
+
+	case MODE_TIMER:
+		PORTC &= ~PC_HRSEP;
+		dotpos = -1;
+		break;
+
+	default:
+		return -1;
+	}
+
+	mode = m;
+	return 0;
 }
 
 static void setdigit(int idx, unsigned char val)
@@ -415,8 +447,9 @@ static void shiftout(int sreg, unsigned char val)
 static void update_display(void)
 {
 	static unsigned int frame;
-	int i, visdot, mplex, lvl, dframe, fade, fadeout, dp;
+	int i, sec, mplex, lvl, dframe, fade, fadeout, dp = 0;
 	unsigned char *dptr, digit;
+	unsigned long tval;
 
 	/* mplex is used to multiplex the decimal point 1/4 of the time with the
 	 * digits the rest 3/4. if we ignite both the decimal point and a digit in
@@ -434,7 +467,8 @@ static void update_display(void)
 	}
 
 
-	if(mode == MODE_CLOCK) {
+	switch(mode) {
+	case MODE_CLOCK:
 		setdigit(0, (opt.flags & OPT_CLK0) || (tm.hour & 0xf0) ? tm.hour >> 4 : 0xf);
 		setdigit(1, tm.hour & 0xf);
 		setdigit(2, tm.min >> 4);
@@ -444,14 +478,12 @@ static void update_display(void)
 			setdigit(5, tm.sec & 0xf);
 
 			/* dot is always in the seconds tube when in clock mode */
-			dp = 4;
-			visdot = 1;
+			dp = 0x10;
 		} else {
 			setdigit(4, 0xf);
 			setdigit(5, 0xf);
 
-			dp = -1;
-			visdot = 0;
+			dp = 0;
 		}
 
 		if((frame & (SEP_LEVELS - 1)) <= opt.sep_level) {
@@ -459,9 +491,33 @@ static void update_display(void)
 		} else {
 			PORTC = 0;
 		}
-	} else {
-		dp = dotpos;
-		visdot = dotpos >= 0 && dotpos < 6;
+		break;
+
+	case MODE_TIMER:
+		tval = nticks / 10;
+
+		setdigit(5, tval % 10);
+		tval /= 10;
+		setdigit(4, tval % 10);
+		tval /= 10;
+
+		sec = tval % 60;
+		tval /= 60;
+
+		setdigit(3, sec % 10);
+		sec /= 10;
+		setdigit(2, sec % 10);
+
+		setdigit(1, tval % 10);
+		tval /= 10;
+		setdigit(0, tval % 10);
+
+		dp = 0x14;	/* dots on both the seconds (2) and hundredths (4) tube */
+		break;
+
+	case MODE_NUM:
+	default:
+		dp = dotpos >= 0 ? 1 << dotpos : 0;
 	}
 
 
@@ -471,7 +527,7 @@ static void update_display(void)
 	 */
 	dframe = frame & 0xf;
 
-	if(!visdot || mplex) {
+	if(!dp || mplex) {
 		/* dot is not visible at all, or it is, but we're in the 3/4 of the time
 		 * when we display digits
 		 */
@@ -498,9 +554,9 @@ static void update_display(void)
 	}
 
 	lvl = opt.glevel * opt.level[6] >> 4;
-	if(!mplex && visdot && dframe <= lvl) {
+	if(!mplex && dp && dframe <= lvl) {
 		/* dot is visible and we're in the 1/4 of the time when we display the dot */
-		PORTD = PD_ADOT << dp;
+		PORTD = dp << 2;	/* starts from pin 2 of the output port */
 	} else {
 		PORTD = 0;
 	}
