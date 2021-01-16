@@ -59,7 +59,7 @@ static int mode;
 static unsigned char echo, blank;
 static unsigned char disp[7], prev[6], fdisp[6];
 static unsigned int fade_time[6];
-static int dotpos = -1;
+static unsigned char dotmask;
 
 static struct rtc_time tm;
 
@@ -355,19 +355,19 @@ static void proc_cmd(char *input)
 			while(*end && (isdigit(*end) || *end == '.')) end++;
 			if(end == input) break;
 
-			dotpos = -1;
+			dotmask = 0;
 			didx = 5;
 			while(end > input && didx >= 0) {
 				c = *--end;
 				if(c == '.') {
-					dotpos = didx + 1;
+					dotmask |= 1 << (didx + 1);
 				} else {
 					setdigit(didx--, c - '0');
 				}
 			}
 
 			if(end > input && *--end == '.') {
-				dotpos = 0;
+				dotmask |= 1;
 			}
 
 			/* fill the leading digits with 0xff, which means blank */
@@ -404,12 +404,12 @@ static int switch_mode(int m)
 	case MODE_NUM:
 		PORTC &= ~PC_HRSEP;
 		disp[0] = disp[1] = disp[2] = disp[3] = disp[4] = disp[5] = 0xff;
-		dotpos = -1;
+		dotmask = 0;
 		break;
 
 	case MODE_TIMER:
 		PORTC &= ~PC_HRSEP;
-		dotpos = -1;
+		dotmask = 0;
 		break;
 
 	default:
@@ -517,7 +517,7 @@ static void update_display(void)
 
 	case MODE_NUM:
 	default:
-		dp = dotpos >= 0 ? 1 << dotpos : 0;
+		dp = dotmask;
 	}
 
 
