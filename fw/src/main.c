@@ -35,7 +35,8 @@ static void read_buttons(void);
 
 enum {
 	OPT_CLK0	= 1,
-	OPT_CLKSEC	= 2
+	OPT_CLKSEC	= 2,
+	OPT_CLK12	= 4
 };
 
 struct options {
@@ -146,7 +147,6 @@ int main(void)
 
 static const char *helpstr =
 	"nixiedisp firmware v" VERSTR " by John Tsiombikas <nuclear@member.fsf.org>\n"
-	"nixiedisp is free hardware/software: GNU GPLv3 or later\n"
 	"  web: http://nuclear.mutantstargoat.com/hw/nixiedisp\n"
 	"  git: https://github.com/jtsiomb/nixiedisp\n"
 	"\n"
@@ -155,12 +155,13 @@ static const char *helpstr =
 	" e 0|1: echo\n"
 	" b 0|1: blank display\n"
 	" m n|c|t: mode (number/clock/timer)\n"
+	" M 24|12: clock mode (24h/12h)\n"
 	" z 0|1: clock leading zero\n"
 	" S 0|1: clock seconds display\n"
 	" s <hr>:<min>.<sec>: set clock\n"
 	" d <day>/<mon>/<year>: set date\n"
-	" L <level>: global intensity level (0-15)\n"
-	" H <level>: hour separator intensity level (0-63)\n"
+	" L <level>: global intensity (0-15)\n"
+	" H <level>: hour separator intensity (0-63)\n"
 	" x <mask>: fade mask (6 bits)\n"
 	" t 0|1|r: timer stop/start/reset\n"
 	" c: run anti-cathode poisoning cycle\n"
@@ -188,12 +189,10 @@ static void proc_cmd(char *input)
 		break;
 
 	case 'b':
-		if(args[0] == '?') {
-			printf("OK display blanking: %s\n", blank ? "on" : "off");
-			break;
+		if(args[0] != '?') {
+			if(boolarg(args, &blank, 1) == -1) break;
 		}
-		if(boolarg(args, &blank, 1) == -1) break;
-		printf("OK %sblanking display\n", blank ? "" : "un");
+		printf("OK blanking: %s\n", blank ? "on" : "off");
 		break;
 
 	case 'z':
@@ -222,6 +221,21 @@ static void proc_cmd(char *input)
 			break;
 		}
 		printf("OK %s mode\n", modename[mode]);
+		break;
+
+	case 'M':
+		if(args[0] != '?') {
+			if(args[0] == '1' && args[1] == '2') {
+				opt.flags |= OPT_CLK12;
+			} else if(args[0] == '2' && args[1] == '4') {
+				opt.flags &= ~OPT_CLK12;
+			} else {
+				printf("ERR invalid clock mode: '%s'\n", args);
+				break;
+			}
+			save_opt();
+		}
+		printf("OK clock mode: %shr\n", opt.flags & OPT_CLK12 ? "12" : "24");
 		break;
 
 	case 's':
@@ -514,10 +528,16 @@ static void shiftout(int sreg, unsigned char val)
 	}
 }
 
+static unsigned char c12lut[] = {
+	0x12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	0x10, 0x11, 0x12, 1, 2, 3, 4, 5, 6, 7, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+	8, 9, 0x10, 0x11, 0x12
+};
+
 static void update_display(void)
 {
 	static unsigned int frame;
-	int i, sec, mplex, lvl, dframe, fade, fadeout, dp = 0;
+	int i, hour, sec, mplex, lvl, dframe, fade, fadeout, dp = 0;
 	unsigned char *dptr, digit;
 	unsigned long tval;
 
@@ -551,8 +571,10 @@ static void update_display(void)
 			PORTC &= ~PC_HRSEP;
 		} else {
 			/* otherwise show the time */
-			setdigit(0, (opt.flags & OPT_CLK0) || (tm.hour & 0xf0) ? tm.hour >> 4 : 0xf);
-			setdigit(1, tm.hour & 0xf);
+			hour = (opt.flags & OPT_CLK12) ? c12lut[tm.hour] : tm.hour;
+
+			setdigit(0, (opt.flags & OPT_CLK0) || (hour & 0xf0) ? hour >> 4 : 0xf);
+			setdigit(1, hour & 0xf);
 			setdigit(2, tm.min >> 4);
 			setdigit(3, tm.min & 0xf);
 			if(opt.flags & OPT_CLKSEC) {
