@@ -15,6 +15,7 @@ void rtc_get_time_bcd(struct rtc_time *tm);
 void rtc_set_date(int year, int month, int day);
 void rtc_set_weekday(int dow);
 void rtc_get_date(struct rtc_date *date);
+void rtc_get_date_bcd(struct rtc_date *date);
 void rtc_store(int addr, unsigned char byte);
 unsigned char rtc_load(int addr);
 

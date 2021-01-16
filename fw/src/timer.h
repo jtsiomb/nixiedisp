@@ -2,6 +2,7 @@
 #define TIMER_H_
 
 extern unsigned long nticks;
+extern int timer_running;
 
 void timer_init(void);
 void timer_start(void);

@@ -19,14 +19,18 @@
 #define HALF_FADE	511
 #define FADE_SHIFT	5
 
+#define DEBOUNCE_ITER	32
+
 static void proc_cmd(char *input);
 static int switch_mode(int m);
+static void handle_button(unsigned char bn);
 static void setdigit(int idx, unsigned char val);
 static void update_display(void);
 static void cycle_disp(void);
 static int boolarg(char *args, unsigned char *flags, unsigned char bit);
 static int load_opt(void);
 static void save_opt(void);
+static void numchange(long delta);
 
 enum {
 	OPT_CLK0	= 1,
@@ -52,7 +56,7 @@ static struct options def_opt = {
 };
 static struct options opt;
 
-enum { MODE_CLOCK, MODE_NUM, MODE_TIMER };
+enum { MODE_CLOCK, MODE_TIMER, MODE_NUM };
 static const char *modename[] = {"clock", "number", "timer"};
 
 static int mode;
@@ -62,9 +66,13 @@ static unsigned int fade_time[6];
 static unsigned char dotmask;
 
 static struct rtc_time tm;
+static struct rtc_date date;
 
 static char input[64];
 static unsigned char inp_cidx;
+
+static int bnignore;
+static unsigned char bnstate, prev_bnstate, bndiff;
 
 
 int main(void)
@@ -72,10 +80,14 @@ int main(void)
 	/* SPI (SS/MOSI/SCK) are outputs */
 	DDRB = ~PB_RTC_DATA;	/* port B all outputs except the RTC data line */
 	PORTB = 0;
-	DDRC = 0xff;			/* port C all outputs */
-	PORTC = 0;
+	DDRC = ~PC_BNMASK;		/* port C all outputs, except buttons */
+	PORTC = PC_BNMASK;		/* enable button pullups */
 	DDRD = 0xff;			/* port D all outputs */
 	PORTD = 0;
+
+	/* enable pin change interrupts for the 3 buttons */
+	PCMSK1 = PCINT11 | PCINT12 | PCINT13;
+	PCICR = PCIE1;
 
 	/* init the serial port we use to talk to the host */
 	init_serial(38400);
@@ -108,12 +120,35 @@ int main(void)
 			}
 		}
 
-		rtc_get_time_bcd(&tm);
+		if(bndiff) {
+			unsigned char bnpress = bndiff & bnstate;
+			if(bnpress & PC_BN_MODE) {
+				switch_mode((mode + 1) & 1);	/* switch between clock and timer */
+				bndiff &= ~PC_BN_MODE;
+				bnpress &= ~PC_BN_MODE;
+			}
+
+			if(bndiff & ~PC_BN_MODE) {	/* if other buttons changed state... */
+				handle_button(bnpress & ~PC_BN_MODE);
+			}
+			bndiff = 0;
+		}
+
+		if(bnstate & PC_BN_B) {
+			rtc_get_date_bcd(&date);
+		} else {
+			rtc_get_time_bcd(&tm);
+		}
+
 		if(tm.hour == opt.cycle_time[0] && tm.min == opt.cycle_time[1] && tm.sec == opt.cycle_time[2]) {
 			cycle_disp();
 		}
 
 		update_display();
+
+		if(bnignore) {
+			bnignore--;
+		}
 	}
 	return 0;
 }
@@ -320,7 +355,7 @@ static void proc_cmd(char *input)
 			printf("OK timer stopped\n");
 		} else if(args[0] == '1') {
 			timer_start();
-			printf("OK timer srtarted\n");
+			printf("OK timer started\n");
 		} else if(args[0] == 'r') {
 			timer_reset();
 			printf("OK timer reset\n");
@@ -338,6 +373,26 @@ static void proc_cmd(char *input)
 		printf("OK resetting options\n");
 		opt = def_opt;
 		save_opt();
+		break;
+
+	case '>':
+		if(mode == MODE_NUM) {
+			tmp = atoi(args);
+			numchange(tmp > 0 ? tmp : 1);
+		}
+		break;
+
+	case '<':
+		if(mode == MODE_NUM) {
+			tmp = atoi(args);
+			numchange(-(tmp > 0 ? tmp : 1));
+		}
+		break;
+
+	case 'B':
+		prev_bnstate = bnstate;
+		bnstate ^= PC_BN_B;
+		bndiff = PC_BN_B;
 		break;
 
 	case '?':
@@ -420,6 +475,35 @@ static int switch_mode(int m)
 	return 0;
 }
 
+static void handle_button(unsigned char pressed)
+{
+	switch(mode) {
+	case MODE_TIMER:
+		if(pressed & PC_BN_A) {
+			if(timer_running) {
+				timer_stop();
+			} else {
+				timer_start();
+			}
+		}
+		if(pressed & PC_BN_B) {
+			timer_reset();
+		}
+		break;
+
+	case MODE_NUM:
+		if(pressed & PC_BN_A) {
+			numchange(-1);
+		} else {
+			numchange(1);
+		}
+		break;
+
+	default:
+		break;	/* manual clock setting not implemented yet */
+	}
+}
+
 static void setdigit(int idx, unsigned char val)
 {
 	unsigned char *dptr = disp + idx;
@@ -469,27 +553,40 @@ static void update_display(void)
 
 	switch(mode) {
 	case MODE_CLOCK:
-		setdigit(0, (opt.flags & OPT_CLK0) || (tm.hour & 0xf0) ? tm.hour >> 4 : 0xf);
-		setdigit(1, tm.hour & 0xf);
-		setdigit(2, tm.min >> 4);
-		setdigit(3, tm.min & 0xf);
-		if(opt.flags & OPT_CLKSEC) {
-			setdigit(4, tm.sec >> 4);
-			setdigit(5, tm.sec & 0xf);
-
-			/* dot is always in the seconds tube when in clock mode */
-			dp = 0x10;
-		} else {
-			setdigit(4, 0xf);
-			setdigit(5, 0xf);
-
-			dp = 0;
-		}
-
-		if((frame & (SEP_LEVELS - 1)) <= opt.sep_level) {
-			PORTC |= PC_HRSEP;
-		} else {
+		if(bnstate & PC_BN_B) {
+			/* show date while holding down B */
+			setdigit(0, date.day & 0xf0 ? date.day >> 4 : 0xff);
+			setdigit(1, date.day & 0xf);
+			setdigit(2, date.month & 0xf0 ? date.month >> 4 : 0xff);
+			setdigit(3, date.month & 0xf);
+			setdigit(4, date.year >> 4);
+			setdigit(5, date.year & 0xf);
+			dp = 0x14;
 			PORTC = 0;
+		} else {
+			/* otherwise show the time */
+			setdigit(0, (opt.flags & OPT_CLK0) || (tm.hour & 0xf0) ? tm.hour >> 4 : 0xf);
+			setdigit(1, tm.hour & 0xf);
+			setdigit(2, tm.min >> 4);
+			setdigit(3, tm.min & 0xf);
+			if(opt.flags & OPT_CLKSEC) {
+				setdigit(4, tm.sec >> 4);
+				setdigit(5, tm.sec & 0xf);
+
+				/* dot is always in the seconds tube when in clock mode */
+				dp = 0x10;
+			} else {
+				setdigit(4, 0xf);
+				setdigit(5, 0xf);
+
+				dp = 0;
+			}
+
+			if((frame & (SEP_LEVELS - 1)) <= opt.sep_level) {
+				PORTC |= PC_HRSEP;
+			} else {
+				PORTC = 0;
+			}
 		}
 		break;
 
@@ -632,5 +729,39 @@ static void save_opt(void)
 
 	for(i=0; i<sizeof opt; i++) {
 		rtc_store(i, *ptr++);
+	}
+}
+
+static void numchange(long delta)
+{
+	int i;
+	unsigned long num, scale = 1;
+	unsigned char *dptr = disp + 5;
+
+	num = 0;
+	for(i=0; i<6; i++) {
+		if(*dptr <= 9) num += (unsigned long)*dptr * scale;
+		dptr--;
+		scale *= 10;
+	}
+
+	num += delta;
+
+	for(i=0; i<6; i++) {
+		setdigit(5 - i, num || i == 0 ? num % 10 : 0xff);
+		num /= 10;
+	}
+}
+
+ISR(PCINT1_vect)
+{
+	if(bnignore) return;
+
+	prev_bnstate = bnstate;
+	bnstate = ~PINC & PC_BNMASK;
+	bndiff = bnstate ^ prev_bnstate;
+
+	if(bndiff) {
+		bnignore = DEBOUNCE_ITER;
 	}
 }

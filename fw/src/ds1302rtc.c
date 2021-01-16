@@ -130,6 +130,13 @@ void rtc_get_date(struct rtc_date *date)
 	date->dow = wval & 7;
 }
 
+void rtc_get_date_bcd(struct rtc_date *date)
+{
+	date->year = read_reg(REG_YEAR);
+	date->month = read_reg(REG_MONTH);
+	date->day = read_reg(REG_DOM);
+}
+
 void rtc_store(int addr, unsigned char byte)
 {
 	write_reg(SRAM_BASE | (addr << 1), byte);
