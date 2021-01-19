@@ -1,29 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <office:document xmlns:presentation="urn:oasis:names:tc:opendocument:xmlns:presentation:1.0" xmlns:css3t="http://www.w3.org/TR/css3-text/" xmlns:grddl="http://www.w3.org/2003/g/data-view#" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:formx="urn:openoffice:names:experimental:ooxml-odf-interop:xmlns:form:1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:chart="urn:oasis:names:tc:opendocument:xmlns:chart:1.0" xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" xmlns:oooc="http://openoffice.org/2004/calc" xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0" xmlns:ooow="http://openoffice.org/2004/writer" xmlns:meta="urn:oasis:names:tc:opendocument:xmlns:meta:1.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rpt="http://openoffice.org/2005/report" xmlns:draw="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0" xmlns:config="urn:oasis:names:tc:opendocument:xmlns:config:1.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0" xmlns:ooo="http://openoffice.org/2004/office" xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:dr3d="urn:oasis:names:tc:opendocument:xmlns:dr3d:1.0" xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" xmlns:number="urn:oasis:names:tc:opendocument:xmlns:datastyle:1.0" xmlns:of="urn:oasis:names:tc:opendocument:xmlns:of:1.2" xmlns:calcext="urn:org:documentfoundation:names:experimental:calc:xmlns:calcext:1.0" xmlns:tableooo="http://openoffice.org/2009/table" xmlns:drawooo="http://openoffice.org/2010/draw" xmlns:loext="urn:org:documentfoundation:names:experimental:office:xmlns:loext:1.0" xmlns:dom="http://www.w3.org/2001/xml-events" xmlns:field="urn:openoffice:names:experimental:ooo-ms-interop:xmlns:field:1.0" xmlns:math="http://www.w3.org/1998/Math/MathML" xmlns:form="urn:oasis:names:tc:opendocument:xmlns:form:1.0" xmlns:script="urn:oasis:names:tc:opendocument:xmlns:script:1.0" xmlns:xforms="http://www.w3.org/2002/xforms" office:version="1.3" office:mimetype="application/vnd.oasis.opendocument.spreadsheet">
- <office:meta><meta:print-date>2020-12-30T13:08:11.686438251</meta:print-date><dc:date>2021-01-09T17:44:36.969165222</dc:date><meta:editing-duration>PT58M54S</meta:editing-duration><meta:editing-cycles>6</meta:editing-cycles><meta:generator>LibreOffice/7.0.4.2$Linux_X86_64 LibreOffice_project/00$Build-2</meta:generator><meta:document-statistic meta:table-count="1" meta:cell-count="269" meta:object-count="0"/></office:meta>
+ <office:meta><meta:print-date>2020-12-30T13:08:11.686438251</meta:print-date><dc:date>2021-01-19T11:13:54.045312653</dc:date><meta:editing-duration>PT1H38M8S</meta:editing-duration><meta:editing-cycles>8</meta:editing-cycles><meta:generator>LibreOffice/7.0.4.2$Linux_X86_64 LibreOffice_project/00$Build-2</meta:generator><meta:document-statistic meta:table-count="1" meta:cell-count="281" meta:object-count="0"/></office:meta>
  <office:settings>
   <config:config-item-set config:name="ooo:view-settings">
    <config:config-item config:name="VisibleAreaTop" config:type="int">0</config:config-item>
    <config:config-item config:name="VisibleAreaLeft" config:type="int">0</config:config-item>
-   <config:config-item config:name="VisibleAreaWidth" config:type="int">27659</config:config-item>
-   <config:config-item config:name="VisibleAreaHeight" config:type="int">19533</config:config-item>
+   <config:config-item config:name="VisibleAreaWidth" config:type="int">31984</config:config-item>
+   <config:config-item config:name="VisibleAreaHeight" config:type="int">19351</config:config-item>
    <config:config-item-map-indexed config:name="Views">
     <config:config-item-map-entry>
      <config:config-item config:name="ViewId" config:type="string">view1</config:config-item>
      <config:config-item-map-named config:name="Tables">
       <config:config-item-map-entry config:name="nixiedisp">
-       <config:config-item config:name="CursorPositionX" config:type="int">5</config:config-item>
-       <config:config-item config:name="CursorPositionY" config:type="int">16</config:config-item>
+       <config:config-item config:name="CursorPositionX" config:type="int">4</config:config-item>
+       <config:config-item config:name="CursorPositionY" config:type="int">27</config:config-item>
        <config:config-item config:name="HorizontalSplitMode" config:type="short">0</config:config-item>
        <config:config-item config:name="VerticalSplitMode" config:type="short">0</config:config-item>
        <config:config-item config:name="HorizontalSplitPosition" config:type="int">0</config:config-item>
        <config:config-item config:name="VerticalSplitPosition" config:type="int">0</config:config-item>
        <config:config-item config:name="ActiveSplitRange" config:type="short">2</config:config-item>
-       <config:config-item config:name="PositionLeft" config:type="int">0</config:config-item>
+       <config:config-item config:name="PositionLeft" config:type="int">1</config:config-item>
        <config:config-item config:name="PositionRight" config:type="int">0</config:config-item>
        <config:config-item config:name="PositionTop" config:type="int">0</config:config-item>
-       <config:config-item config:name="PositionBottom" config:type="int">0</config:config-item>
+       <config:config-item config:name="PositionBottom" config:type="int">9</config:config-item>
        <config:config-item config:name="ZoomType" config:type="short">0</config:config-item>
        <config:config-item config:name="ZoomValue" config:type="int">150</config:config-item>
        <config:config-item config:name="PageViewZoomValue" config:type="int">60</config:config-item>
@@ -69,7 +69,7 @@
    <config:config-item config:name="HasColumnRowHeaders" config:type="boolean">true</config:config-item>
    <config:config-item config:name="ShowNotes" config:type="boolean">true</config:config-item>
    <config:config-item config:name="HasSheetTabs" config:type="boolean">true</config:config-item>
-   <config:config-item config:name="PrinterSetup" config:type="base64Binary">rgH+/0t5b2NlcmFfRlMtMTEwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQ1VQUzpLeW9jZXJhX0ZTLTExMDAAAAAAAAAAAAAAAAAWAAMAywAAAAAAAAAIAFZUAAAkbQAASm9iRGF0YSAxCnByaW50ZXI9S3lvY2VyYV9GUy0xMTAwCm9yaWVudGF0aW9uPVBvcnRyYWl0CmNvcGllcz0xCmNvbGxhdGU9ZmFsc2UKbWFyZ2luZGFqdXN0bWVudD0wLDAsMCwwCmNvbG9yZGVwdGg9MjQKcHNsZXZlbD0wCnBkZmRldmljZT0xCmNvbG9yZGV2aWNlPTAKUFBEQ29udGV4RGF0YQpJbnB1dFNsb3Q6SW50ZXJuYWwAUGFnZVNpemU6TGV0dGVyAAASAENPTVBBVF9EVVBMRVhfTU9ERRMARHVwbGV4TW9kZTo6VW5rbm93bg==</config:config-item>
+   <config:config-item config:name="PrinterSetup" config:type="base64Binary">rgH+/0t5b2NlcmFfRlMtMTEwMAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQ1VQUzpLeW9jZXJhX0ZTLTExMDAAAAAAAAAAAAAAAAAWAAMAywAAAAAAAAAIAFZUAAAkbQAASm9iRGF0YSAxCnByaW50ZXI9S3lvY2VyYV9GUy0xMTAwCm9yaWVudGF0aW9uPVBvcnRyYWl0CmNvcGllcz0xCmNvbGxhdGU9ZmFsc2UKbWFyZ2luZGFqdXN0bWVudD0wLDAsMCwwCmNvbG9yZGVwdGg9MjQKcHNsZXZlbD0wCnBkZmRldmljZT0xCmNvbG9yZGV2aWNlPTAKUFBEQ29udGV4RGF0YQpQYWdlU2l6ZTpMZXR0ZXIASW5wdXRTbG90OkludGVybmFsAAASAENPTVBBVF9EVVBMRVhfTU9ERRMARHVwbGV4TW9kZTo6VW5rbm93bg==</config:config-item>
    <config:config-item config:name="RasterResolutionX" config:type="int">1270</config:config-item>
    <config:config-item config:name="SyntaxStringRef" config:type="short">7</config:config-item>
    <config:config-item config:name="RasterIsVisible" config:type="boolean">false</config:config-item>
@@ -235,21 +235,21 @@
    <style:table-column-properties fo:break-before="auto" style:column-width="2.628cm"/>
   </style:style>
   <style:style style:name="co9" style:family="table-column">
+   <style:table-column-properties fo:break-before="auto" style:column-width="4.325cm"/>
+  </style:style>
+  <style:style style:name="co10" style:family="table-column">
    <style:table-column-properties fo:break-before="auto" style:column-width="2.258cm"/>
   </style:style>
   <style:style style:name="ro1" style:family="table-row">
    <style:table-row-properties style:row-height="0.459cm" fo:break-before="auto" style:use-optimal-row-height="true"/>
   </style:style>
   <style:style style:name="ro2" style:family="table-row">
-   <style:table-row-properties style:row-height="0.885cm" fo:break-before="auto" style:use-optimal-row-height="true"/>
-  </style:style>
-  <style:style style:name="ro3" style:family="table-row">
    <style:table-row-properties style:row-height="0.868cm" fo:break-before="auto" style:use-optimal-row-height="true"/>
   </style:style>
-  <style:style style:name="ro4" style:family="table-row">
-   <style:table-row-properties style:row-height="1.277cm" fo:break-before="auto" style:use-optimal-row-height="true"/>
+  <style:style style:name="ro3" style:family="table-row">
+   <style:table-row-properties style:row-height="0.612cm" fo:break-before="auto" style:use-optimal-row-height="false"/>
   </style:style>
-  <style:style style:name="ro5" style:family="table-row">
+  <style:style style:name="ro4" style:family="table-row">
    <style:table-row-properties style:row-height="0.452cm" fo:break-before="auto" style:use-optimal-row-height="true"/>
   </style:style>
   <style:style style:name="ta1" style:family="table" style:master-page-name="Default">
@@ -320,7 +320,7 @@
      <text:p><text:sheet-name>???</text:sheet-name><text:s/>(<text:title>???</text:title>)</text:p>
     </style:region-left>
     <style:region-right>
-     <text:p><text:date style:data-style-name="N2" text:date-value="2021-01-09">00/00/0000</text:date>, <text:time style:data-style-name="N2" text:time-value="16:51:57.450273455">00:00:00</text:time></text:p>
+     <text:p><text:date style:data-style-name="N2" text:date-value="2021-01-19">00/00/0000</text:date>, <text:time style:data-style-name="N2" text:time-value="09:49:09.313163278">00:00:00</text:time></text:p>
     </style:region-right>
    </style:header>
    <style:header-left style:display="false"/>
@@ -342,7 +342,8 @@
     <table:table-column table:style-name="co6" table:default-cell-style-name="ce15"/>
     <table:table-column table:style-name="co7" table:default-cell-style-name="ce15"/>
     <table:table-column table:style-name="co8" table:default-cell-style-name="ce12"/>
-    <table:table-column table:style-name="co9" table:number-columns-repeated="1016" table:default-cell-style-name="ce12"/>
+    <table:table-column table:style-name="co9" table:default-cell-style-name="ce12"/>
+    <table:table-column table:style-name="co10" table:number-columns-repeated="1015" table:default-cell-style-name="ce12"/>
     <table:table-row table:style-name="ro1">
      <table:table-cell table:style-name="ce11" office:value-type="string" calcext:value-type="string">
       <text:p>Reference</text:p>
@@ -366,7 +367,10 @@
       <text:p>Cost</text:p>
      </table:table-cell>
      <table:table-cell table:style-name="Default"/>
-     <table:table-cell table:style-name="ce11" table:number-columns-repeated="1016"/>
+     <table:table-cell table:style-name="ce11" office:value-type="string" calcext:value-type="string">
+      <text:p>Digi-key id</text:p>
+     </table:table-cell>
+     <table:table-cell table:style-name="ce11" table:number-columns-repeated="1015"/>
     </table:table-row>
     <table:table-row table:style-name="ro1">
      <table:table-cell office:value-type="string" calcext:value-type="string">
@@ -475,7 +479,7 @@
       <text:p>1</text:p>
      </table:table-cell>
      <table:table-cell office:value-type="string" calcext:value-type="string">
-      <text:p>2.2uF</text:p>
+      <text:p>2.2uF 250V</text:p>
      </table:table-cell>
      <table:table-cell office:value-type="string" calcext:value-type="string">
       <text:p>radial D6.3mm P2.50mm</text:p>
@@ -561,7 +565,11 @@
      <table:table-cell table:formula="of:=[.F9]*[.B9]" office:value-type="currency" office:currency="EUR" office:value="0.711" calcext:value-type="currency">
       <text:p>0.711 €</text:p>
      </table:table-cell>
-     <table:table-cell table:number-columns-repeated="1017"/>
+     <table:table-cell/>
+     <table:table-cell office:value-type="string" calcext:value-type="string">
+      <text:p>667-EEE-FP1V221AL</text:p>
+     </table:table-cell>
+     <table:table-cell table:number-columns-repeated="1015"/>
     </table:table-row>
     <table:table-row table:style-name="ro1">
      <table:table-cell office:value-type="string" calcext:value-type="string">
@@ -598,18 +606,20 @@
       <text:p>MUR160</text:p>
      </table:table-cell>
      <table:table-cell office:value-type="string" calcext:value-type="string">
-      <text:p>through hole diode</text:p>
+      <text:p>SMD DO-214A (SMB)</text:p>
      </table:table-cell>
+     <table:table-cell/>
+     <table:table-cell office:value-type="currency" office:currency="EUR" office:value="0.33" calcext:value-type="currency">
+      <text:p>0.330 €</text:p>
+     </table:table-cell>
+     <table:table-cell table:formula="of:=[.F11]*[.B11]" office:value-type="currency" office:currency="EUR" office:value="0.33" calcext:value-type="currency">
+      <text:p>0.330 €</text:p>
+     </table:table-cell>
+     <table:table-cell/>
      <table:table-cell office:value-type="string" calcext:value-type="string">
-      <text:p>863-MUR160G</text:p>
+      <text:p>MUR160SR5GCT-ND</text:p>
      </table:table-cell>
-     <table:table-cell office:value-type="currency" office:currency="EUR" office:value="0.356" calcext:value-type="currency">
-      <text:p>0.356 €</text:p>
-     </table:table-cell>
-     <table:table-cell table:formula="of:=[.F11]*[.B11]" office:value-type="currency" office:currency="EUR" office:value="0.356" calcext:value-type="currency">
-      <text:p>0.356 €</text:p>
-     </table:table-cell>
-     <table:table-cell table:number-columns-repeated="1017"/>
+     <table:table-cell table:number-columns-repeated="1015"/>
     </table:table-row>
     <table:table-row table:style-name="ro1">
      <table:table-cell office:value-type="string" calcext:value-type="string">
@@ -729,7 +739,11 @@
      <table:table-cell table:formula="of:=[.F16]*[.B16]" office:value-type="currency" office:currency="EUR" office:value="0.855" calcext:value-type="currency">
       <text:p>0.855 €</text:p>
      </table:table-cell>
-     <table:table-cell table:number-columns-repeated="1017"/>
+     <table:table-cell/>
+     <table:table-cell office:value-type="string" calcext:value-type="string">
+      <text:p>SDR1806-221KLCT-ND‎</text:p>
+     </table:table-cell>
+     <table:table-cell table:number-columns-repeated="1015"/>
     </table:table-row>
     <table:table-row table:style-name="ro1">
      <table:table-cell office:value-type="string" calcext:value-type="string">
@@ -753,7 +767,11 @@
      <table:table-cell table:formula="of:=[.F17]*[.B17]" office:value-type="currency" office:currency="EUR" office:value="0.169" calcext:value-type="currency">
       <text:p>0.169 €</text:p>
      </table:table-cell>
-     <table:table-cell table:number-columns-repeated="1017"/>
+     <table:table-cell/>
+     <table:table-cell office:value-type="string" calcext:value-type="string">
+      <text:p>MMBTA55LT1GOSCT-ND‎</text:p>
+     </table:table-cell>
+     <table:table-cell table:number-columns-repeated="1015"/>
     </table:table-row>
     <table:table-row table:style-name="ro1">
      <table:table-cell office:value-type="string" calcext:value-type="string">
@@ -766,18 +784,20 @@
       <text:p>IRF740A</text:p>
      </table:table-cell>
      <table:table-cell office:value-type="string" calcext:value-type="string">
-      <text:p>TO-220</text:p>
+      <text:p>TO-263-3</text:p>
      </table:table-cell>
-     <table:table-cell office:value-type="string" calcext:value-type="string">
-      <text:p>844-IRF740APBF</text:p>
-     </table:table-cell>
+     <table:table-cell/>
      <table:table-cell office:value-type="currency" office:currency="EUR" office:value="1.3" calcext:value-type="currency">
       <text:p>1.300 €</text:p>
      </table:table-cell>
      <table:table-cell table:formula="of:=[.F18]*[.B18]" office:value-type="currency" office:currency="EUR" office:value="1.3" calcext:value-type="currency">
       <text:p>1.300 €</text:p>
      </table:table-cell>
-     <table:table-cell table:number-columns-repeated="1017"/>
+     <table:table-cell/>
+     <table:table-cell office:value-type="string" calcext:value-type="string">
+      <text:p>IRF740ASPBF-ND‎</text:p>
+     </table:table-cell>
+     <table:table-cell table:number-columns-repeated="1015"/>
     </table:table-row>
     <table:table-row table:style-name="ro1">
      <table:table-cell office:value-type="string" calcext:value-type="string">
@@ -804,7 +824,10 @@
      <table:table-cell office:value-type="string" calcext:value-type="string">
       <text:p>(price for 100)</text:p>
      </table:table-cell>
-     <table:table-cell table:number-columns-repeated="1016"/>
+     <table:table-cell office:value-type="string" calcext:value-type="string">
+      <text:p>MMBTA42LT1GOSCT-ND</text:p>
+     </table:table-cell>
+     <table:table-cell table:number-columns-repeated="1015"/>
     </table:table-row>
     <table:table-row table:style-name="ro1">
      <table:table-cell office:value-type="string" calcext:value-type="string">
@@ -1027,45 +1050,25 @@
       <text:p>6</text:p>
      </table:table-cell>
      <table:table-cell office:value-type="string" calcext:value-type="string">
-      <text:p>74HC154</text:p>
+      <text:p>74HC4514</text:p>
      </table:table-cell>
      <table:table-cell office:value-type="string" calcext:value-type="string">
       <text:p>SOIC-24 wide</text:p>
      </table:table-cell>
-     <table:table-cell office:value-type="string" calcext:value-type="string">
-      <text:p>771-HC154D652</text:p>
+     <table:table-cell/>
+     <table:table-cell office:value-type="currency" office:currency="EUR" office:value="0.82" calcext:value-type="currency">
+      <text:p>0.820 €</text:p>
      </table:table-cell>
-     <table:table-cell office:value-type="currency" office:currency="EUR" office:value="0.661" calcext:value-type="currency">
-      <text:p>0.661 €</text:p>
-     </table:table-cell>
-     <table:table-cell table:formula="of:=[.F28]*[.B28]" office:value-type="currency" office:currency="EUR" office:value="3.966" calcext:value-type="currency">
-      <text:p>3.966 €</text:p>
-     </table:table-cell>
-     <table:table-cell table:number-columns-repeated="1017"/>
-    </table:table-row>
-    <table:table-row table:style-name="ro4">
-     <table:table-cell office:value-type="string" calcext:value-type="string">
-      <text:p>U15,U16,U18,U19,U21,U22,U24,U25,U27,U28,U30,U31</text:p>
-     </table:table-cell>
-     <table:table-cell office:value-type="float" office:value="12" calcext:value-type="float">
-      <text:p>12</text:p>
+     <table:table-cell table:formula="of:=[.F28]*[.B28]" office:value-type="currency" office:currency="EUR" office:value="4.92" calcext:value-type="currency">
+      <text:p>4.920 €</text:p>
      </table:table-cell>
      <table:table-cell office:value-type="string" calcext:value-type="string">
-      <text:p>74HC04</text:p>
+      <text:p>(price for 10)</text:p>
      </table:table-cell>
      <table:table-cell office:value-type="string" calcext:value-type="string">
-      <text:p>SOIC-14</text:p>
+      <text:p>1727-6338-1-ND</text:p>
      </table:table-cell>
-     <table:table-cell office:value-type="string" calcext:value-type="string">
-      <text:p>595-SN74HC04DR</text:p>
-     </table:table-cell>
-     <table:table-cell office:value-type="currency" office:currency="EUR" office:value="0.229" calcext:value-type="currency">
-      <text:p>0.229 €</text:p>
-     </table:table-cell>
-     <table:table-cell table:formula="of:=[.F29]*[.B29]" office:value-type="currency" office:currency="EUR" office:value="2.748" calcext:value-type="currency">
-      <text:p>2.748 €</text:p>
-     </table:table-cell>
-     <table:table-cell table:number-columns-repeated="1017"/>
+     <table:table-cell table:number-columns-repeated="1015"/>
     </table:table-row>
     <table:table-row table:style-name="ro1">
      <table:table-cell office:value-type="string" calcext:value-type="string">
@@ -1075,21 +1078,23 @@
       <text:p>1</text:p>
      </table:table-cell>
      <table:table-cell office:value-type="string" calcext:value-type="string">
-      <text:p>MC34063AP</text:p>
+      <text:p>MC34063A</text:p>
      </table:table-cell>
      <table:table-cell office:value-type="string" calcext:value-type="string">
-      <text:p>DIP-8</text:p>
+      <text:p>SOIC-8</text:p>
      </table:table-cell>
+     <table:table-cell/>
+     <table:table-cell office:value-type="currency" office:currency="EUR" office:value="0.38" calcext:value-type="currency">
+      <text:p>0.380 €</text:p>
+     </table:table-cell>
+     <table:table-cell table:formula="of:=[.F29]*[.B29]" office:value-type="currency" office:currency="EUR" office:value="0.38" calcext:value-type="currency">
+      <text:p>0.380 €</text:p>
+     </table:table-cell>
+     <table:table-cell/>
      <table:table-cell office:value-type="string" calcext:value-type="string">
-      <text:p>511-MC34063EBN</text:p>
+      <text:p>296-17765-1-ND</text:p>
      </table:table-cell>
-     <table:table-cell office:value-type="currency" office:currency="EUR" office:value="0.5" calcext:value-type="currency">
-      <text:p>0.500 €</text:p>
-     </table:table-cell>
-     <table:table-cell table:formula="of:=[.F30]*[.B30]" office:value-type="currency" office:currency="EUR" office:value="0.5" calcext:value-type="currency">
-      <text:p>0.500 €</text:p>
-     </table:table-cell>
-     <table:table-cell table:number-columns-repeated="1017"/>
+     <table:table-cell table:number-columns-repeated="1015"/>
     </table:table-row>
     <table:table-row table:style-name="ro1">
      <table:table-cell office:value-type="string" calcext:value-type="string">
@@ -1110,7 +1115,7 @@
      <table:table-cell office:value-type="currency" office:currency="EUR" office:value="0.39" calcext:value-type="currency">
       <text:p>0.390 €</text:p>
      </table:table-cell>
-     <table:table-cell table:formula="of:=[.F31]*[.B31]" office:value-type="currency" office:currency="EUR" office:value="0.39" calcext:value-type="currency">
+     <table:table-cell table:formula="of:=[.F30]*[.B30]" office:value-type="currency" office:currency="EUR" office:value="0.39" calcext:value-type="currency">
       <text:p>0.390 €</text:p>
      </table:table-cell>
      <table:table-cell table:number-columns-repeated="1017"/>
@@ -1134,7 +1139,7 @@
      <table:table-cell office:value-type="currency" office:currency="EUR" office:value="2.74" calcext:value-type="currency">
       <text:p>2.740 €</text:p>
      </table:table-cell>
-     <table:table-cell table:formula="of:=[.F32]*[.B32]" office:value-type="currency" office:currency="EUR" office:value="2.74" calcext:value-type="currency">
+     <table:table-cell table:formula="of:=[.F31]*[.B31]" office:value-type="currency" office:currency="EUR" office:value="2.74" calcext:value-type="currency">
       <text:p>2.740 €</text:p>
      </table:table-cell>
      <table:table-cell table:number-columns-repeated="1017"/>
@@ -1158,7 +1163,7 @@
      <table:table-cell office:value-type="currency" office:currency="EUR" office:value="1.6" calcext:value-type="currency">
       <text:p>1.600 €</text:p>
      </table:table-cell>
-     <table:table-cell table:formula="of:=[.F33]*[.B33]" office:value-type="currency" office:currency="EUR" office:value="1.6" calcext:value-type="currency">
+     <table:table-cell table:formula="of:=[.F32]*[.B32]" office:value-type="currency" office:currency="EUR" office:value="1.6" calcext:value-type="currency">
       <text:p>1.600 €</text:p>
      </table:table-cell>
      <table:table-cell table:number-columns-repeated="1017"/>
@@ -1182,7 +1187,7 @@
      <table:table-cell office:value-type="currency" office:currency="EUR" office:value="0.296" calcext:value-type="currency">
       <text:p>0.296 €</text:p>
      </table:table-cell>
-     <table:table-cell table:formula="of:=[.F34]*[.B34]" office:value-type="currency" office:currency="EUR" office:value="0.888" calcext:value-type="currency">
+     <table:table-cell table:formula="of:=[.F33]*[.B33]" office:value-type="currency" office:currency="EUR" office:value="0.888" calcext:value-type="currency">
       <text:p>0.888 €</text:p>
      </table:table-cell>
      <table:table-cell table:number-columns-repeated="1017"/>
@@ -1204,7 +1209,7 @@
      <table:table-cell office:value-type="currency" office:currency="EUR" office:value="0" calcext:value-type="currency">
       <text:p>0.000 €</text:p>
      </table:table-cell>
-     <table:table-cell table:formula="of:=[.F35]*[.B35]" office:value-type="currency" office:currency="EUR" office:value="0" calcext:value-type="currency">
+     <table:table-cell table:formula="of:=[.F34]*[.B34]" office:value-type="currency" office:currency="EUR" office:value="0" calcext:value-type="currency">
       <text:p>0.000 €</text:p>
      </table:table-cell>
      <table:table-cell table:number-columns-repeated="1017"/>
@@ -1228,7 +1233,7 @@
      <table:table-cell office:value-type="currency" office:currency="EUR" office:value="0.288" calcext:value-type="currency">
       <text:p>0.288 €</text:p>
      </table:table-cell>
-     <table:table-cell table:formula="of:=[.F36]*[.B36]" office:value-type="currency" office:currency="EUR" office:value="0.288" calcext:value-type="currency">
+     <table:table-cell table:formula="of:=[.F35]*[.B35]" office:value-type="currency" office:currency="EUR" office:value="0.288" calcext:value-type="currency">
       <text:p>0.288 €</text:p>
      </table:table-cell>
      <table:table-cell table:number-columns-repeated="1017"/>
@@ -1252,12 +1257,62 @@
      <table:table-cell office:value-type="currency" office:currency="EUR" office:value="0.5" calcext:value-type="currency">
       <text:p>0.500 €</text:p>
      </table:table-cell>
-     <table:table-cell table:formula="of:=[.F37]*[.B37]" office:value-type="currency" office:currency="EUR" office:value="0.5" calcext:value-type="currency">
+     <table:table-cell table:formula="of:=[.F36]*[.B36]" office:value-type="currency" office:currency="EUR" office:value="0.5" calcext:value-type="currency">
       <text:p>0.500 €</text:p>
      </table:table-cell>
      <table:table-cell table:number-columns-repeated="1017"/>
     </table:table-row>
-    <table:table-row table:style-name="ro5">
+    <table:table-row table:style-name="ro1">
+     <table:table-cell office:value-type="string" calcext:value-type="string">
+      <text:p>U2</text:p>
+     </table:table-cell>
+     <table:table-cell office:value-type="float" office:value="1" calcext:value-type="float">
+      <text:p>1</text:p>
+     </table:table-cell>
+     <table:table-cell office:value-type="string" calcext:value-type="string">
+      <text:p>MAX232</text:p>
+     </table:table-cell>
+     <table:table-cell office:value-type="string" calcext:value-type="string">
+      <text:p>SOIC-16</text:p>
+     </table:table-cell>
+     <table:table-cell/>
+     <table:table-cell office:value-type="currency" office:currency="EUR" office:value="0.69" calcext:value-type="currency">
+      <text:p>0.690 €</text:p>
+     </table:table-cell>
+     <table:table-cell table:formula="of:=[.F37]*[.B37]" office:value-type="currency" office:currency="EUR" office:value="0.69" calcext:value-type="currency">
+      <text:p>0.690 €</text:p>
+     </table:table-cell>
+     <table:table-cell/>
+     <table:table-cell office:value-type="string" calcext:value-type="string">
+      <text:p>296-14619-1-ND‎</text:p>
+     </table:table-cell>
+     <table:table-cell table:number-columns-repeated="1015"/>
+    </table:table-row>
+    <table:table-row table:style-name="ro1">
+     <table:table-cell/>
+     <table:table-cell office:value-type="float" office:value="2" calcext:value-type="float">
+      <text:p>2</text:p>
+     </table:table-cell>
+     <table:table-cell office:value-type="string" calcext:value-type="string">
+      <text:p>Amber 3mm LED</text:p>
+     </table:table-cell>
+     <table:table-cell office:value-type="string" calcext:value-type="string">
+      <text:p>through hole LED</text:p>
+     </table:table-cell>
+     <table:table-cell/>
+     <table:table-cell office:value-type="currency" office:currency="EUR" office:value="0.239" calcext:value-type="currency">
+      <text:p>0.239 €</text:p>
+     </table:table-cell>
+     <table:table-cell table:formula="of:=[.F38]*[.B38]" office:value-type="currency" office:currency="EUR" office:value="0.478" calcext:value-type="currency">
+      <text:p>0.478 €</text:p>
+     </table:table-cell>
+     <table:table-cell/>
+     <table:table-cell office:value-type="string" calcext:value-type="string">
+      <text:p>BL-BJC4V5K-AT-ND‎</text:p>
+     </table:table-cell>
+     <table:table-cell table:number-columns-repeated="1015"/>
+    </table:table-row>
+    <table:table-row table:style-name="ro4" table:number-rows-repeated="2">
      <table:table-cell table:number-columns-repeated="1024"/>
     </table:table-row>
     <table:table-row table:style-name="ro1">
@@ -1265,15 +1320,15 @@
      <table:table-cell office:value-type="string" calcext:value-type="string">
       <text:p>Total cost</text:p>
      </table:table-cell>
-     <table:table-cell table:formula="of:=SUM([.G2:.G37])" office:value-type="currency" office:currency="EUR" office:value="28.266" calcext:value-type="currency">
-      <text:p>28.266 €</text:p>
+     <table:table-cell table:formula="of:=SUM([.G2:.G38])" office:value-type="currency" office:currency="EUR" office:value="27.494" calcext:value-type="currency">
+      <text:p>27.494 €</text:p>
      </table:table-cell>
      <table:table-cell table:number-columns-repeated="1017"/>
     </table:table-row>
-    <table:table-row table:style-name="ro5" table:number-rows-repeated="1048536">
+    <table:table-row table:style-name="ro4" table:number-rows-repeated="1048534">
      <table:table-cell table:number-columns-repeated="1024"/>
     </table:table-row>
-    <table:table-row table:style-name="ro5">
+    <table:table-row table:style-name="ro4">
      <table:table-cell table:number-columns-repeated="1024"/>
     </table:table-row>
    </table:table>
