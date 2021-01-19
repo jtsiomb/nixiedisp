@@ -35,7 +35,7 @@ P 5350 3850
 AR Path="/60380AC6" Ref="R?"  Part="1" 
 AR Path="/60332D47/60380AC6" Ref="R8"  Part="1" 
 F 0 "R8" H 5420 3896 50  0000 L CNN
-F 1 "1K" H 5420 3805 50  0000 L CNN
+F 1 "1K" V 5350 3800 50  0000 L CNN
 F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.15x1.40mm_HandSolder" V 5280 3850 50  0001 C CNN
 F 3 "~" H 5350 3850 50  0001 C CNN
 	1    5350 3850
@@ -269,7 +269,7 @@ AR Path="/60380B4B" Ref="C?"  Part="1"
 AR Path="/60332D47/60380B4B" Ref="C39"  Part="1" 
 F 0 "C39" H 7165 3496 50  0000 L CNN
 F 1 "2.2uF 250V" H 7165 3405 50  0000 L CNN
-F 2 "Capacitor_THT:CP_Radial_D6.3mm_P2.50mm" H 7050 3450 50  0001 C CNN
+F 2 "nixiedisp:CP_Radial_D6.3mm_P2.50mm_Horizontal" H 7050 3450 50  0001 C CNN
 F 3 "~" H 7050 3450 50  0001 C CNN
 	1    7050 3450
 	1    0    0    -1  
@@ -355,7 +355,7 @@ AR Path="/60380B75" Ref="U?"  Part="1"
 AR Path="/60332D47/60380B75" Ref="U34"  Part="1" 
 F 0 "U34" H 4800 4792 50  0000 C CNN
 F 1 "L7805" H 4800 4701 50  0000 C CNN
-F 2 "Package_TO_SOT_THT:TO-220-3_Vertical" H 4825 4400 50  0001 L CIN
+F 2 "Package_TO_SOT_SMD:TO-252-2" H 4825 4400 50  0001 L CIN
 F 3 "http://www.st.com/content/ccc/resource/technical/document/datasheet/41/4f/b3/b0/12/d4/47/88/CD00000444.pdf/files/CD00000444.pdf/jcr:content/translations/en.CD00000444.pdf" H 4800 4500 50  0001 C CNN
 	1    4800 4550
 	1    0    0    -1  
@@ -599,4 +599,6 @@ Connection ~ 5200 3000
 Connection ~ 5200 3100
 Wire Wire Line
 	5200 3100 5200 3200
+Text Label 6150 3200 1    50   ~ 0
+TPAD
 $EndSCHEMATC
