@@ -18,6 +18,7 @@ all: $(hex) $(eep)
 
 $(bin): $(obj)
 	$(CC) -o $@ $(obj) $(LDFLAGS)
+	cat $(bin).map | awk '/__bss_end/ { if(strtonum($$1) > 0x800900) { print "Exceeded MCU data space!"; exit 1; } }' || rm -f $(bin)
 
 $(hex): $(bin)
 	$(OBJCOPY) -j .text -j .data -O ihex -R .eeprom $< $@
