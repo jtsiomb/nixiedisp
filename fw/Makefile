@@ -10,7 +10,9 @@ mcu_dude = m328p
 CC = avr-gcc
 OBJCOPY = avr-objcopy
 
-CFLAGS = -Os -pedantic -Wall -mmcu=$(mcu_gcc) -DF_CPU=14745600
+warn = -pedantic -Wall -Wno-overlength-strings
+
+CFLAGS = -Os $(warn) -mmcu=$(mcu_gcc) -DF_CPU=14745600
 LDFLAGS = -Wl,-Map,$(bin).map -mmcu=$(mcu_gcc) -lprintf_min
 
 .PHONY: all
@@ -18,7 +20,7 @@ all: $(hex) $(eep)
 
 $(bin): $(obj)
 	$(CC) -o $@ $(obj) $(LDFLAGS)
-	cat $(bin).map | awk '/__bss_end/ { if(strtonum($$1) > 0x800900) { print "Exceeded MCU data space!"; exit 1; } }' || rm -f $(bin)
+	@cat $(bin).map | awk '/__bss_end/ { if(strtonum($$1) > 0x800900) { print "Exceeded MCU data space!"; exit 1; } }' || rm -f $(bin)
 
 $(hex): $(bin)
 	$(OBJCOPY) -j .text -j .data -O ihex -R .eeprom $< $@

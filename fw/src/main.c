@@ -407,7 +407,7 @@ static void proc_cmd(char *input)
 			char *end;
 
 			end = input;
-			while(*end && (isdigit(*end) || *end == '.')) end++;
+			while(*end && (isdigit(*end) || *end == '.' || *end == ' ')) end++;
 			if(end == input) break;
 
 			dotmask = 0;
@@ -416,6 +416,8 @@ static void proc_cmd(char *input)
 				c = *--end;
 				if(c == '.') {
 					dotmask |= 1 << (didx + 1);
+				} else if(c == ' ') {
+					setdigit(didx--, 0xff);
 				} else {
 					setdigit(didx--, c - '0');
 				}
