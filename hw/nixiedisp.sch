@@ -1095,23 +1095,23 @@ Wire Wire Line
 $Comp
 L power:GND #PWR019
 U 1 1 61B0EE96
-P 3300 10950
-F 0 "#PWR019" H 3300 10700 50  0001 C CNN
-F 1 "GND" H 3300 10800 50  0000 C CNN
-F 2 "" H 3300 10950 50  0001 C CNN
-F 3 "" H 3300 10950 50  0001 C CNN
-	1    3300 10950
+P 3450 11000
+F 0 "#PWR019" H 3450 10750 50  0001 C CNN
+F 1 "GND" H 3450 10850 50  0000 C CNN
+F 2 "" H 3450 11000 50  0001 C CNN
+F 3 "" H 3450 11000 50  0001 C CNN
+	1    3450 11000
 	1    0    0    -1  
 $EndComp
 $Comp
 L power:VCC #PWR018
 U 1 1 61B3194F
-P 3300 10750
-F 0 "#PWR018" H 3300 10600 50  0001 C CNN
-F 1 "VCC" H 3300 10900 50  0000 C CNN
-F 2 "" H 3300 10750 50  0001 C CNN
-F 3 "" H 3300 10750 50  0001 C CNN
-	1    3300 10750
+P 3450 10700
+F 0 "#PWR018" H 3450 10550 50  0001 C CNN
+F 1 "VCC" H 3450 10850 50  0000 C CNN
+F 2 "" H 3450 10700 50  0001 C CNN
+F 3 "" H 3450 10700 50  0001 C CNN
+	1    3450 10700
 	1    0    0    -1  
 $EndComp
 Connection ~ 3050 10750
@@ -1316,7 +1316,7 @@ F 2 "Crystal:Crystal_C38-LF_D3.0mm_L8.0mm_Horizontal" H 2450 1550 50  0001 C CNN
 F 3 "~" H 2450 1550 50  0001 C CNN
 F 4 "6pF" H 2450 1550 50  0001 C CNN "load"
 	1    2450 1550
-	0    -1   -1   0   
+	0    -1   1    0   
 $EndComp
 Connection ~ 2450 1450
 Connection ~ 2450 1650
@@ -1664,7 +1664,7 @@ Wire Wire Line
 Wire Wire Line
 	2550 7100 2550 7700
 Wire Wire Line
-	2550 7700 3450 7700
+	2550 7700 2900 7700
 Wire Wire Line
 	3750 7050 3800 7050
 Wire Wire Line
@@ -1824,8 +1824,6 @@ Wire Wire Line
 Wire Wire Line
 	3000 7350 3000 7050
 Wire Wire Line
-	650  7350 3000 7350
-Wire Wire Line
 	2450 6250 2450 7450
 Wire Wire Line
 	2450 7450 3150 7450
@@ -1837,7 +1835,7 @@ Wire Wire Line
 	700  7450 2300 7450
 Connection ~ 2300 6150
 Wire Wire Line
-	1150 6050 1150 7700
+	1150 6050 1150 7250
 Wire Wire Line
 	1150 7700 2550 7700
 Connection ~ 2550 7700
@@ -2130,4 +2128,147 @@ Wire Wire Line
 	3350 3500 3350 3650
 Wire Wire Line
 	2050 3650 3350 3650
+$Comp
+L Mechanical:MountingHole_Pad H1
+U 1 1 600AE386
+P 9200 3050
+F 0 "H1" H 9150 3250 50  0000 L CNN
+F 1 "mounting hole" H 9250 3350 50  0000 L CNN
+F 2 "MountingHole:MountingHole_3.2mm_M3_Pad_Via" H 9200 3050 50  0001 C CNN
+F 3 "~" H 9200 3050 50  0001 C CNN
+	1    9200 3050
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	9200 3150 9400 3150
+$Comp
+L Mechanical:MountingHole_Pad H2
+U 1 1 600E222F
+P 9400 3050
+F 0 "H2" H 9350 3250 50  0000 L CNN
+F 1 "mounting hole" H 9500 3350 50  0001 L CNN
+F 2 "MountingHole:MountingHole_3.2mm_M3_Pad_Via" H 9400 3050 50  0001 C CNN
+F 3 "~" H 9400 3050 50  0001 C CNN
+	1    9400 3050
+	1    0    0    -1  
+$EndComp
+Connection ~ 9400 3150
+Wire Wire Line
+	9400 3150 9500 3150
+$Comp
+L Mechanical:MountingHole_Pad H3
+U 1 1 600E2501
+P 9600 3050
+F 0 "H3" H 9550 3250 50  0000 L CNN
+F 1 "mounting hole" H 9700 3350 50  0001 L CNN
+F 2 "MountingHole:MountingHole_3.2mm_M3_Pad_Via" H 9600 3050 50  0001 C CNN
+F 3 "~" H 9600 3050 50  0001 C CNN
+	1    9600 3050
+	1    0    0    -1  
+$EndComp
+Connection ~ 9600 3150
+Wire Wire Line
+	9600 3150 9800 3150
+$Comp
+L Mechanical:MountingHole_Pad H4
+U 1 1 600E27AD
+P 9800 3050
+F 0 "H4" H 9750 3250 50  0000 L CNN
+F 1 "mounting hole" H 9900 3350 50  0001 L CNN
+F 2 "MountingHole:MountingHole_3.2mm_M3_Pad_Via" H 9800 3050 50  0001 C CNN
+F 3 "~" H 9800 3050 50  0001 C CNN
+	1    9800 3050
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR045
+U 1 1 600E302B
+P 9500 3150
+F 0 "#PWR045" H 9500 2900 50  0001 C CNN
+F 1 "GND" H 9500 3000 50  0000 C CNN
+F 2 "" H 9500 3150 50  0001 C CNN
+F 3 "" H 9500 3150 50  0001 C CNN
+	1    9500 3150
+	1    0    0    -1  
+$EndComp
+Connection ~ 9500 3150
+Wire Wire Line
+	9500 3150 9600 3150
+$Comp
+L Connector_Generic:Conn_01x02 J7
+U 1 1 60143D55
+P 700 7250
+AR Path="/60143D55" Ref="J7"  Part="1" 
+AR Path="/60332D47/60143D55" Ref="J?"  Part="1" 
+F 0 "J7" H 780 7242 50  0000 L CNN
+F 1 "usbpwr" H 600 7050 50  0000 L CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 700 7250 50  0001 C CNN
+F 3 "~" H 700 7250 50  0001 C CNN
+	1    700  7250
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	650  7350 3000 7350
+Wire Wire Line
+	900  7250 1150 7250
+Connection ~ 1150 7250
+Wire Wire Line
+	1150 7250 1150 7700
+$Comp
+L power:VCC #PWR046
+U 1 1 60276A22
+P 900 7150
+F 0 "#PWR046" H 900 7000 50  0001 C CNN
+F 1 "VCC" H 900 7300 50  0000 C CNN
+F 2 "" H 900 7150 50  0001 C CNN
+F 3 "" H 900 7150 50  0001 C CNN
+	1    900  7150
+	1    0    0    -1  
+$EndComp
+Connection ~ 3300 10950
+$Comp
+L Device:C_Small C17
+U 1 1 6032B882
+P 3300 10850
+F 0 "C17" H 3250 11000 50  0000 L CNN
+F 1 "0.1uF" H 3200 10700 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 3300 10850 50  0001 C CNN
+F 3 "~" H 3300 10850 50  0001 C CNN
+	1    3300 10850
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3300 10950 3450 10950
+Wire Wire Line
+	3450 10950 3450 11000
+Wire Wire Line
+	3300 10750 3450 10750
+Wire Wire Line
+	3450 10750 3450 10700
+Connection ~ 3300 10750
+$Comp
+L Device:R R27
+U 1 1 60259940
+P 2900 7850
+F 0 "R27" V 2800 7850 50  0000 C CNN
+F 1 "10k" V 2900 7850 50  0000 C CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.15x1.40mm_HandSolder" V 2830 7850 50  0001 C CNN
+F 3 "~" H 2900 7850 50  0001 C CNN
+	1    2900 7850
+	-1   0    0    -1  
+$EndComp
+Connection ~ 2900 7700
+Wire Wire Line
+	2900 7700 3450 7700
+$Comp
+L power:GND #PWR062
+U 1 1 6025A6DC
+P 2900 8000
+F 0 "#PWR062" H 2900 7750 50  0001 C CNN
+F 1 "GND" H 2900 7850 50  0000 C CNN
+F 2 "" H 2900 8000 50  0001 C CNN
+F 3 "" H 2900 8000 50  0001 C CNN
+	1    2900 8000
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC

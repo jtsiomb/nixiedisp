@@ -59,7 +59,7 @@ static struct options def_opt = {
 static struct options opt;
 
 enum { MODE_CLOCK, MODE_TIMER, MODE_NUM };
-static const char *modename[] = {"clock", "number", "timer"};
+static const char *modename[] = {"clock", "timer", "number"};
 
 static int mode;
 static unsigned char echo, blank;
