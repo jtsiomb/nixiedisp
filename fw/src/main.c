@@ -7,6 +7,7 @@
 #include <avr/interrupt.h>
 #include <avr/power.h>
 #include <util/delay.h>
+#include <avr/pgmspace.h>
 #include "serial.h"
 #include "ds1302rtc.h"
 #include "timer.h"
@@ -150,9 +151,12 @@ int main(void)
 	return 0;
 }
 
-static const char *helpstr =
+static const char helpstr[] __attribute__((progmem)) =
 	"nixiedisp firmware v" VERSTR " by John Tsiombikas <nuclear@member.fsf.org>\n"
+	"  web: http://nuclear.mutantstargoat.com/hw/nixiedisp\n"
+	"  git: https://github.com/jtsiomb/nixiedisp\n"
 	"\n"
+	"Commands:\n"
 	" <num>: set number\n"
 	" e 0|1: echo\n"
 	" b 0|1: blank display\n"
@@ -174,7 +178,9 @@ static void proc_cmd(char *input)
 {
 	int i, cmd, hr, min, sec, day, mon, year;
 	long tmp;
+	char c;
 	char *args, *endp;
+	const char *str;
 
 	while(*input && isspace(*input)) input++;
 	if(!*input) return;
@@ -400,7 +406,10 @@ static void proc_cmd(char *input)
 	case '?':
 	case 'h':
 		puts("OK command help");
-		puts(helpstr);
+		str = helpstr;
+		while((c = pgm_read_byte(str++))) {
+			putchar(c);
+		}
 		break;
 
 	default:
