@@ -15,6 +15,10 @@ warn = -pedantic -Wall -Wno-overlength-strings
 CFLAGS = -Os $(warn) -mmcu=$(mcu_gcc) -DF_CPU=14745600
 LDFLAGS = -Wl,-Map,$(bin).map -mmcu=$(mcu_gcc) -lprintf_min
 
+ifeq ($(mcu_gcc), atmega328pb)
+	CFLAGS += -DHAS_PORT_E
+endif
+
 .PHONY: all
 all: $(hex) $(eep)
 
@@ -33,7 +37,7 @@ $(eep): $(bin)
 
 .PHONY: fuses
 fuses:
-	avrdude -c usbtiny -p $(mcu_dude) -U lfuse:w:0xe6:m -U hfuse:w:0xdf:m -U efuse:w:0xf9:m
+	avrdude -c usbtiny -p $(mcu_dude) -U lfuse:w:0xe6:m -U hfuse:w:0xd9:m -U efuse:w:0xf7:m
 
 .PHONY: program
 program: $(hex)

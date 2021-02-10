@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <avr/power.h>
 #include <util/delay.h>
 #include "serial.h"
 #include "ds1302rtc.h"
@@ -85,6 +86,10 @@ int main(void)
 	PORTC = PC_BNMASK;		/* enable button pullups */
 	DDRD = 0xff;			/* port D all outputs */
 	PORTD = 0;
+#ifdef HAS_PORT_E
+	DDRE = 0;	/* 328pb port E is where GND and VCC pins are in 328p, make them inputs */
+	PORTE = 0;	/* also disable pullups */
+#endif
 
 	/* init the serial port we use to talk to the host */
 	init_serial(38400);
@@ -147,10 +152,7 @@ int main(void)
 
 static const char *helpstr =
 	"nixiedisp firmware v" VERSTR " by John Tsiombikas <nuclear@member.fsf.org>\n"
-	"  web: http://nuclear.mutantstargoat.com/hw/nixiedisp\n"
-	"  git: https://github.com/jtsiomb/nixiedisp\n"
 	"\n"
-	"Commands:\n"
 	" <num>: set number\n"
 	" e 0|1: echo\n"
 	" b 0|1: blank display\n"
