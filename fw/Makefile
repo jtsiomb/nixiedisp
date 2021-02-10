@@ -4,8 +4,11 @@ bin = nixiedisp
 hex = $(bin).hex
 eep = $(bin).eep
 
-mcu_gcc = atmega328p
-mcu_dude = m328p
+# --- select the correct part number ---
+mcu_gcc = atmega328pb
+mcu_dude = m328pb
+#mcu_gcc = atmega328p
+#mcu_dude = m328p
 
 CC = avr-gcc
 OBJCOPY = avr-objcopy
