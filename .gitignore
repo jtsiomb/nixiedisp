@@ -12,3 +12,9 @@ _autosave-*
 *.hex
 *.map
 fw/nixiedisp
+nixiedisp-gui/moc_*.cpp
+nixiedisp-gui/moc_*.h
+nixiedisp-gui/nixiedisp-gui
+.qmake.stash
+nixiedisp-gui/ui_*.h
+nixiedisp-gui/Makefile
