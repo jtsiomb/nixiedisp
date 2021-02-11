@@ -33,6 +33,28 @@ private:
 public:
 	explicit MainWin(QWidget *parent = 0);
 	~MainWin();
+private slots:
+	void on_bn_timer_startstop_clicked();
+	void on_bn_timer_reset_clicked();
+	void on_chk_clock_zeros_stateChanged(int arg1);
+	void on_chk_clock_showsec_stateChanged(int arg1);
+	void on_frm_dimsec_toggled(bool arg1);
+	void on_slider_clock_dimsec_slider_moved(int position);
+	void on_rad_clock_24hr_toggled(bool checked);
+	void on_rad_clock_12hr_toggled(bool checked);
+	void on_time_edit_user_time_changed(const QTime &time);
+	void on_date_edit_user_date_changed(const QDate &date);
+	void on_rad_dev_usb_toggled(bool checked);
+	void on_rad_dev_serial_toggled(bool checked);
+	void on_cbox_devsel_activated(const QString &arg1);
+	void on_slider_intglobal_slider_moved(int position);
+	void on_chk_blank_state_changed(int arg1);
+	void on_rad_x_instant_toggled(bool checked);
+	void on_rad_x_fade_toggled(bool checked);
+	void on_time_cycle_user_time_changed(const QTime &time);
+	void on_bn_runcycle_clicked();
+	void on_spin_shownum_value_changed(double arg1);
+	void on_tabs_current_changed(int index);
 };
 
 #endif	/* MAINWIN_H_ */

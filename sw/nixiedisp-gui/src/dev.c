@@ -15,19 +15,20 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <QApplication>
-#include "mainwin.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include "dev.h"
 
-QWidget *mainwin;
+struct device *devlist, *dev;
 
-int main(int argc, char **argv)
+int dev_mode(int mode)
 {
-	QApplication app(argc, argv);
-	MainWin w;
-	w.show();
+	static const char mc[] = {'c', 't', 'n'};
 
-	mainwin = &w;
+	if(!dev || mode < 0 || mode >= 3) return -1;
 
-	return app.exec();
+	if(dev_sendcmd(dev, "m%c", mc[mode]) == -1) {
+		return -1;
+	}
+	return 0;
 }
-

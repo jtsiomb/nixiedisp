@@ -2,8 +2,12 @@ QT += core gui widgets
 CONFIG += debug
 TARGET = nixiedisp-gui
 
-SOURCES += src/main.cc src/mainwin.cc
-HEADERS += src/mainwin.h
+SOURCES += src/main.cc src/mainwin.cc \
+	src/dev.c \
+	src/uimsg.cc
+HEADERS += src/mainwin.h \
+	src/dev.h \
+	src/uimsg.h
 FORMS += ui/mainwin.ui
 
 unix {

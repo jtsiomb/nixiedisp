@@ -15,19 +15,17 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <QApplication>
-#include "mainwin.h"
+#ifndef UIMSG_H_
+#define UIMSG_H_
 
-QWidget *mainwin;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-int main(int argc, char **argv)
-{
-	QApplication app(argc, argv);
-	MainWin w;
-	w.show();
+void errmsg(const char *fmt, ...);
 
-	mainwin = &w;
-
-	return app.exec();
+#ifdef __cplusplus
 }
+#endif
 
+#endif	/* UIMSG_H_ */

@@ -15,19 +15,20 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <QApplication>
-#include "mainwin.h"
+#include <stdio.h>
+#include <stdarg.h>
+#include <QMessageBox>
 
-QWidget *mainwin;
+extern QWidget *mainwin;
 
-int main(int argc, char **argv)
+extern "C" void errmsg(const char *fmt, ...)
 {
-	QApplication app(argc, argv);
-	MainWin w;
-	w.show();
+	static char buf[2048];
+	va_list ap;
 
-	mainwin = &w;
+	va_start(ap, fmt);
+	vsnprintf(buf, sizeof buf, fmt, ap);
+	va_end(ap);
 
-	return app.exec();
+	QMessageBox::critical(mainwin, "Error", buf);
 }
-

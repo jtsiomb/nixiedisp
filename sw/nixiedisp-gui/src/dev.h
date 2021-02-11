@@ -15,19 +15,39 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <QApplication>
-#include "mainwin.h"
+#ifndef DEV_H_
+#define DEV_H_
 
-QWidget *mainwin;
+enum { DEV_USB, DEV_SERIAL };
 
-int main(int argc, char **argv)
-{
-	QApplication app(argc, argv);
-	MainWin w;
-	w.show();
+struct device {
+	int type;
+	char *name;
+	void *data;
+	char *resp;
+	int resp_buf_size;
 
-	mainwin = &w;
+	struct device *next;
+};
 
-	return app.exec();
+extern struct device *devlist, *dev;
+
+enum { MODE_CLOCK, MODE_TIMER, MODE_NUMBER };
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int dev_scan(void);
+int dev_open(struct device *dev);
+void dev_close(struct device *dev);
+int dev_sendcmd(struct device *dev, const char *fmt, ...);
+
+
+int dev_mode(int mode);
+
+#ifdef __cplusplus
 }
+#endif
 
+#endif	/* DEV_H_ */
