@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <unistd.h>
 #include <fcntl.h>
 #include <dirent.h>
+#include <termios.h>
 #include <sys/time.h>
 #include <sys/ioctl.h>
 #include <linux/serial.h>
@@ -103,6 +104,7 @@ err:
 int dev_open(struct device *dev)
 {
 	int fd;
+	struct termios term;
 
 	if(!dev || !dev->name) {
 		errmsg("dev_open: null device or device name");
@@ -113,6 +115,19 @@ int dev_open(struct device *dev)
 		errmsg("dev_open: failed to open %s: %s", dev->name, strerror(errno));
 		return -1;
 	}
+	if(tcgetattr(fd, &term) == -1) {
+		errmsg("dev_open: failed to get terminal attributes");
+		close(fd);
+		return -1;
+	}
+
+	term.c_cflag = CLOCAL | CREAD | CS8;
+	term.c_iflag = IGNBRK | IGNPAR;
+	tcsetattr(fd, TCSANOW, &term);
+
+	cfsetispeed(&term, B38400);
+	cfsetospeed(&term, B38400);
+
 
 	dev->data = (void*)fd;
 	return 0;
