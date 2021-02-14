@@ -77,6 +77,8 @@ int dev_clock_set_leadzero(struct device *dev, int z);
 int dev_clock_get_leadzero(struct device *dev);
 int dev_clock_set_showsec(struct device *dev, int ss);
 int dev_clock_get_showsec(struct device *dev);
+int dev_clock_set_hrsep(struct device *dev, int val);
+int dev_clock_get_hrsep(struct device *dev);
 
 int dev_timer_start(struct device *dev);
 int dev_timer_stop(struct device *dev);

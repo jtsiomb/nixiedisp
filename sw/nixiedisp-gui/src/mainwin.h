@@ -43,8 +43,9 @@ private slots:
 	void on_bn_timer_reset_clicked();
 	void on_chk_clock_zeros_stateChanged(int arg1);
 	void on_chk_clock_showsec_stateChanged(int arg1);
+	void on_slider_clock_hrsep_valueChanged(int pos);
 	void on_frm_dimsec_toggled(bool arg1);
-	void on_slider_clock_dimsec_valueChanged(int position);
+	void on_slider_clock_dimsec_valueChanged(int pos);
 	void on_rad_clock_24hr_toggled(bool checked);
 	void on_rad_clock_12hr_toggled(bool checked);
 	void on_bn_setclock_sys_clicked();
@@ -54,7 +55,7 @@ private slots:
 	void on_rad_dev_usb_toggled(bool checked);
 	void on_rad_dev_serial_toggled(bool checked);
 	void on_cbox_devsel_currentIndexChanged(int idx);
-	void on_slider_intglobal_valueChanged(int position);
+	void on_slider_intglobal_valueChanged(int pos);
 	void on_chk_blank_stateChanged(int arg1);
 	void on_rad_x_instant_toggled(bool checked);
 	void on_rad_x_fade_toggled(bool checked);

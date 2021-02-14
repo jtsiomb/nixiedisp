@@ -291,6 +291,30 @@ int dev_clock_get_showsec(struct device *dev)
 	return -1;
 }
 
+int dev_clock_set_hrsep(struct device *dev, int val)
+{
+	if(!dev || val < 0 || val > 63) {
+		return -1;
+	}
+
+	return dev_sendcmd(dev, "H %d", val);
+}
+
+int dev_clock_get_hrsep(struct device *dev)
+{
+	int val;
+
+	if(!dev) return -1;
+
+	if(dev_sendcmd(dev, "H?") == -1) {
+		return -1;
+	}
+	if(sscanf(dev->resp, "OK hour separator intensity: %d", &val) < 1) {
+		return -1;
+	}
+	return val;
+}
+
 int dev_timer_start(struct device *dev)
 {
 	if(!dev) return -1;

@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <stdio.h>
+#include <QSettings>
 #include "mainwin.h"
 #include "ui_mainwin.h"
 #include "dev.h"
@@ -35,10 +36,23 @@ MainWin::MainWin(QWidget *parent)
 	ui->cbox_devsel->setCurrentIndex(0);
 	ui->cbox_devsel->addItem("<none>", QVariant::fromValue((void*)0));
 	if(dev_scan() != -1) {
+		QSettings cfg;
+		QString devpathstr = cfg.value("devpath").toString();
+
+		int idx = 0, sel = 0;
 		struct device *d = devlist;
 		while(d) {
+			++idx;
 			ui->cbox_devsel->addItem(d->name, QVariant::fromValue((void*)d));
+			if(devpathstr == QString(d->name)) {
+				sel = idx;
+			}
+
 			d = d->next;
+		}
+
+		if(sel) {
+			ui->cbox_devsel->setCurrentIndex(sel);
 		}
 	}
 }
@@ -81,7 +95,7 @@ void MainWin::updateui_clock()
 		if(tmstate) {
 			dev->flags |= DEV_TMRUNNING;
 		}
-		ui->bn_timer_startstop->setChecked(tmstate ? Qt::Checked : Qt::Unchecked);
+		ui->bn_timer_startstop->setChecked(tmstate ? true : false);
 		ui->bn_timer_startstop->setText(tmstate ? "Stop" : "Start");
 	}
 }
@@ -97,9 +111,8 @@ void MainWin::on_rad_dev_serial_toggled(bool checked)
 
 void MainWin::on_cbox_devsel_currentIndexChanged(int idx)
 {
-	char *fwstr;
-	char buf[128];
 	int res, val[3];
+	QSettings cfg;
 
 	if(idx <= 0) {
 		if(dev) {
@@ -148,8 +161,15 @@ void MainWin::on_cbox_devsel_currentIndexChanged(int idx)
 		ui->rad_x_instant->setChecked(true);
 	}
 
+	if((res = dev_clock_get_hrsep(dev)) == -1) {
+		goto err;
+	}
+	ui->slider_clock_hrsep->setValue(res);
+
 	updateui_clock();
 	dev_unmask_mod(dev);
+
+	cfg.setValue("devpath", QString(dev->name));
 	return;
 
 err:
@@ -217,6 +237,11 @@ void MainWin::on_chk_clock_zeros_stateChanged(int state)
 void MainWin::on_chk_clock_showsec_stateChanged(int state)
 {
 	dev_clock_set_showsec(dev, state == Qt::Checked ? 1 : 0);
+}
+
+void MainWin::on_slider_clock_hrsep_valueChanged(int pos)
+{
+	dev_clock_set_hrsep(dev, pos);
 }
 
 void MainWin::on_frm_dimsec_toggled(bool state)
