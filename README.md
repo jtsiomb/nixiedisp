@@ -1,8 +1,8 @@
 nixiedisp - USB nixie tube display
 ==================================
-A 6 (optionally 4) digit nixie tube numeric display, software-controlled over
-USB, that also functions standalone as a clock. Designed to use IN-14 nixie
-tubes. Powered by 12v DC supply through standard barrel jack (center-positive).
+A 6-digit nixie tube numeric display, software-controlled over USB or RS232,
+that also functions standalone as a clock. Designed to use IN-14 nixie tubes.
+Powered by 12v DC supply through standard barrel jack (center-positive).
 
 Excercise caution when operating without an enclosure, there are high voltages
 (180V DC) present in the power supply section of the board, and around the
@@ -16,7 +16,7 @@ Project structure:
 
 License
 -------
-Copyright (C) 2020 John Tsiombikas <nuclear@member.fsf.org>
+Copyright (C) 2020-2021 John Tsiombikas <nuclear@member.fsf.org>
 
 Hardware designs and software (firmware) in this project are free. Feel free to
 use, modify, and/or redistribute under the terms of the GNU General Public
