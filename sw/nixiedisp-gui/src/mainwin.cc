@@ -353,9 +353,21 @@ void MainWin::on_action_exit_triggered()
 
 void MainWin::on_action_about_triggered()
 {
-	static const char *aboutstr = "Nixiedisp configuration UI\n"
-		"Copyright (c) 2021 John Tsiombikas <nuclear@member.fsf.org>\n"
-		"This program is free software. Feel free to use, modify and/or redistribute it\n"
-		"under the terms of the GNU General Public License v3 (or later)\n";
-	QMessageBox::about(this, "About nixiedisp", aboutstr);
+	static const char *aboutstr = "<h1>nixiedisp configuration tool</h1>\n"
+		"<hr/>\n"
+		"<ul>\n"
+		"<li>website: <a href=\"http://nuclear.mutantstargoat.com/hw/nixiedisp\">http://nuclear.mutantstargoat.com/hw/nixiedisp</a></li>\n"
+		"<li>repository: <a href=\"https://github.com/jtsiomb/nixiedisp\">https://github.com/jtsiomb/nixiedisp</a></li>\n"
+		"</ul>\n"
+		"<p>Copyright (c) 2021 John Tsiombikas &lt;<a href=\"mailto:nuclear@member.fsf.org\">nuclear@member.fsf.org</a>&gt;<br/>\n"
+		"This program is free software. Feel free to use, modify and/or "
+		"redistribute it under the terms of the GNU General Public License "
+		"v3 (or later). See <a href=\"http://www.gnu.org/licenses/gpl.html\">http://www.gnu.org/licenses/gpl.html</a> for details.</p>";
+
+	QMessageBox about;
+	about.setTextFormat(Qt::RichText);
+	about.setText(aboutstr);
+	about.setStandardButtons(QMessageBox::Ok);
+	about.exec();
+//	QMessageBox::about(this, "About nixiedisp", aboutstr);
 }
