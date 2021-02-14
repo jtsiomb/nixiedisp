@@ -202,7 +202,7 @@
     <item>
      <widget class="QTabWidget" name="tabs">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab_clock">
        <attribute name="title">
@@ -407,6 +407,9 @@
          <widget class="QPushButton" name="bn_timer_startstop">
           <property name="text">
            <string>Start</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
           </property>
          </widget>
         </item>

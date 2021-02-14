@@ -39,7 +39,7 @@ public:
 
 private slots:
 	void on_tabs_currentChanged(int index);
-	void on_bn_timer_startstop_clicked();
+	void on_bn_timer_startstop_toggled();
 	void on_bn_timer_reset_clicked();
 	void on_chk_clock_zeros_stateChanged(int arg1);
 	void on_chk_clock_showsec_stateChanged(int arg1);

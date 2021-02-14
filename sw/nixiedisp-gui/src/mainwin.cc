@@ -54,7 +54,39 @@ void MainWin::uiactive(bool act)
 
 void MainWin::updateui_clock()
 {
+	dev_mask_mod(dev);
 	on_bn_updclock_clicked();
+
+	int hrmode = dev_clock_get_hrmode(dev);
+	switch(hrmode) {
+	case 12:
+		ui->rad_clock_12hr->setChecked(true);
+		break;
+	case 24:
+		ui->rad_clock_24hr->setChecked(true);
+		break;
+	}
+
+	int leadzero = dev_clock_get_leadzero(dev);
+	if(leadzero != -1) {
+		ui->chk_clock_zeros->setChecked(leadzero != 0);
+	}
+
+	int showsec = dev_clock_get_showsec(dev);
+	if(showsec != -1) {
+		ui->chk_clock_showsec->setChecked(showsec != 0);
+	}
+
+	int tmstate = dev_timer(dev, 0);
+	if(tmstate != -1) {
+		if(tmstate) {
+			dev->flags |= DEV_TMRUNNING;
+		}
+		ui->bn_timer_startstop->setChecked(tmstate ? Qt::Checked : Qt::Unchecked);
+		ui->bn_timer_startstop->setText(tmstate ? "Stop" : "Start");
+	}
+
+	dev_unmask_mod(dev);
 }
 
 void MainWin::on_rad_dev_usb_toggled(bool checked)
@@ -71,8 +103,6 @@ void MainWin::on_cbox_devsel_currentIndexChanged(int idx)
 	char *fwstr;
 	char buf[128];
 	int res;
-
-	printf("idx: %d\n", idx);
 
 	if(idx <= 0) {
 		if(dev) {
@@ -123,44 +153,70 @@ void MainWin::on_tabs_currentChanged(int index)
 	}
 }
 
-void MainWin::on_bn_timer_startstop_clicked()
+void MainWin::on_bn_timer_startstop_toggled()
 {
-	// TODO start timer
+	if(!dev) return;
+
+	if(dev->flags & DEV_TMRUNNING) {
+		unsigned int tm;
+		char buf[64];
+
+		dev_timer_stop(dev);
+		dev_timer(dev, &tm);
+
+		ui->bn_timer_startstop->setText("Start");
+		ui->bn_timer_startstop->setChecked(Qt::Unchecked);
+
+		sprintf(buf, "last timer: %u msec", tm);
+		statusBar()->showMessage(buf, 5000);
+	} else {
+		dev_timer_start(dev);
+
+		ui->bn_timer_startstop->setText("Stop");
+		ui->bn_timer_startstop->setChecked(Qt::Checked);
+	}
+
+	dev->flags ^= DEV_TMRUNNING;
 }
 
 void MainWin::on_bn_timer_reset_clicked()
 {
-	// TODO reset timer
+	dev_timer_reset(dev);
 }
 
-void MainWin::on_chk_clock_zeros_stateChanged(int arg1)
+void MainWin::on_chk_clock_zeros_stateChanged(int state)
 {
-	// TODO
+	dev_clock_set_leadzero(dev, state == Qt::Checked ? 1 : 0);
 }
 
-void MainWin::on_chk_clock_showsec_stateChanged(int arg1)
+void MainWin::on_chk_clock_showsec_stateChanged(int state)
 {
-
+	dev_clock_set_showsec(dev, state == Qt::Checked ? 1 : 0);
 }
 
-void MainWin::on_frm_dimsec_toggled(bool arg1)
+void MainWin::on_frm_dimsec_toggled(bool state)
 {
-
+	ui->slider_clock_dimsec->setEnabled(state);
 }
 
 void MainWin::on_slider_clock_dimsec_sliderMoved(int position)
 {
-
 }
 
 void MainWin::on_rad_clock_24hr_toggled(bool checked)
 {
-	ui->time_edit->setDisplayFormat("hh:mm.ss");
+	if(checked) {
+		ui->time_edit->setDisplayFormat("hh:mm.ss");
+		dev_clock_set_hrmode(dev, 24);
+	}
 }
 
 void MainWin::on_rad_clock_12hr_toggled(bool checked)
 {
-	ui->time_edit->setDisplayFormat("h:m.s ap");
+	if(checked) {
+		ui->time_edit->setDisplayFormat("h:m.s ap");
+		dev_clock_set_hrmode(dev, 12);
+	}
 }
 
 void MainWin::on_bn_setclock_sys_clicked()
@@ -168,30 +224,30 @@ void MainWin::on_bn_setclock_sys_clicked()
 	QTime tm = QTime::currentTime();
 	QDate date = QDate::currentDate();
 
-	dev_clock_settime(dev, tm.hour(), tm.minute(), tm.second());
-	dev_clock_setdate(dev, date.day(), date.month(), date.year());
+	dev_clock_set_time(dev, tm.hour(), tm.minute(), tm.second());
+	dev_clock_set_date(dev, date.day(), date.month(), date.year());
 }
 
 void MainWin::on_bn_set_time_clicked()
 {
 	QTime tm = ui->time_edit->time();
-	dev_clock_settime(dev, tm.hour(), tm.minute(), tm.second());
+	dev_clock_set_time(dev, tm.hour(), tm.minute(), tm.second());
 }
 
 void MainWin::on_bn_set_date_clicked()
 {
 	QDate date = ui->date_edit->date();
-	dev_clock_setdate(dev, date.day(), date.month(), date.year());
+	dev_clock_set_date(dev, date.day(), date.month(), date.year());
 }
 
 void MainWin::on_bn_updclock_clicked()
 {
 	int val[3];
 
-	if(dev_clock_gettime(dev, val, val + 1, val + 2) != -1) {
+	if(dev_clock_get_time(dev, val, val + 1, val + 2) != -1) {
 		ui->time_edit->setTime(QTime(val[0], val[1], val[2]));
 	}
-	if(dev_clock_getdate(dev, val, val + 1, val + 2) != -1) {
+	if(dev_clock_get_date(dev, val, val + 1, val + 2) != -1) {
 		ui->date_edit->setDate(QDate(val[2], val[1], val[0]));
 	}
 }

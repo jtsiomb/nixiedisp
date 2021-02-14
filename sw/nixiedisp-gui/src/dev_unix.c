@@ -171,6 +171,10 @@ int dev_sendcmd(struct device *dev, const char *fmt, ...)
 	len = vsnprintf(dev->resp, sizeof dev->resp - 1, fmt, ap);
 	va_end(ap);
 
+	if((dev->flags & DEV_MODMASK) && !strchr(dev->resp, '?')) {
+		return 0;
+	}
+
 	printf("dev_sendcmd(\"%s\")\n", dev->resp);
 
 	if(dev->resp[len-1] != '\n') {

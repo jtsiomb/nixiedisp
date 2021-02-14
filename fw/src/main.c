@@ -361,7 +361,7 @@ static void proc_cmd(char *input)
 
 	case 't':
 		if(args[0] == '?') {
-			printf("OK timer: %lu\n", nticks);
+			printf("OK timer %s: %lu\n", timer_running ? "running" : "stopped", nticks);
 			break;
 		}
 		if(args[0] == '0') {
