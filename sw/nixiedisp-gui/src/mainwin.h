@@ -33,6 +33,10 @@ private:
 public:
 	explicit MainWin(QWidget *parent = 0);
 	~MainWin();
+
+	void uiactive(bool act);
+	void updateui_clock();
+
 private slots:
 	void on_tabs_currentChanged(int index);
 	void on_bn_timer_startstop_clicked();
@@ -43,11 +47,13 @@ private slots:
 	void on_slider_clock_dimsec_sliderMoved(int position);
 	void on_rad_clock_24hr_toggled(bool checked);
 	void on_rad_clock_12hr_toggled(bool checked);
-	void on_time_edit_userTimeChanged(const QTime &time);
-	void on_date_edit_userDateChanged(const QDate &date);
+	void on_bn_setclock_sys_clicked();
+	void on_bn_set_time_clicked();
+	void on_bn_set_date_clicked();
+	void on_bn_updclock_clicked();
 	void on_rad_dev_usb_toggled(bool checked);
 	void on_rad_dev_serial_toggled(bool checked);
-	void on_cbox_devsel_activated(const QString &arg1);
+	void on_cbox_devsel_currentIndexChanged(int idx);
 	void on_slider_intglobal_sliderMoved(int position);
 	void on_chk_blank_stateChanged(int arg1);
 	void on_rad_x_instant_toggled(bool checked);

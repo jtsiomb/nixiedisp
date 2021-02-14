@@ -24,13 +24,12 @@ struct device {
 	int type;
 	char *name;
 	void *data;
-	char *resp;
-	int resp_buf_size;
+	char resp[512];
 
 	struct device *next;
 };
 
-extern struct device *devlist, *dev;
+extern struct device *devlist;
 
 enum { MODE_CLOCK, MODE_TIMER, MODE_NUMBER };
 
@@ -44,7 +43,12 @@ void dev_close(struct device *dev);
 int dev_sendcmd(struct device *dev, const char *fmt, ...);
 
 
-int dev_mode(int mode);
+int dev_mode(struct device *dev, int mode);
+int dev_getmode(struct device *dev);
+int dev_clock_settime(struct device *dev, int hr, int min, int sec);
+int dev_clock_gettime(struct device *dev, int *hr, int *min, int *sec);
+int dev_clock_setdate(struct device *dev, int day, int mon, int yr);
+int dev_clock_getdate(struct device *dev, int *day, int *mon, int *yr);
 
 #ifdef __cplusplus
 }

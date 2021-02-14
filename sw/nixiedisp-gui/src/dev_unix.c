@@ -30,7 +30,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "uimsg.h"
 #include "dev.h"
 
-static int waitresp(struct device *dev);
+static int readresp(struct device *dev, long timeout_msec);
+static int waitresp(struct device *dev, long timeout_msec);
 
 static void free_list(struct device *d)
 {
@@ -92,7 +93,6 @@ int dev_scan(void)
 
 	free_list(devlist);
 	devlist = head;
-	dev = 0;
 	return 0;
 
 err:
@@ -105,6 +105,7 @@ int dev_open(struct device *dev)
 {
 	int fd;
 	struct termios term;
+	char buf[256];
 
 	if(!dev || !dev->name) {
 		errmsg("dev_open: null device or device name");
@@ -116,18 +117,28 @@ int dev_open(struct device *dev)
 		return -1;
 	}
 	if(tcgetattr(fd, &term) == -1) {
-		errmsg("dev_open: failed to get terminal attributes");
+		errmsg("dev_open: failed to get terminal attributes for: %s", dev->name);
 		close(fd);
 		return -1;
 	}
 
+	term.c_iflag = IGNBRK | IGNPAR | IGNCR;
+	term.c_oflag = ONLCR;
 	term.c_cflag = CLOCAL | CREAD | CS8;
-	term.c_iflag = IGNBRK | IGNPAR;
-	tcsetattr(fd, TCSANOW, &term);
-
+	term.c_lflag = ICANON;
 	cfsetispeed(&term, B38400);
 	cfsetospeed(&term, B38400);
+	tcsetattr(fd, TCSANOW, &term);
 
+	write(fd, "e0\n", 3);
+	if(read(fd, buf, sizeof buf) <= 0) {
+		errmsg("dev_open: device not responding");
+		close(fd);
+		return -1;
+	}
+	if(memcmp(buf, "e0", 2) == 0) {
+		read(fd, buf, sizeof buf);
+	}
 
 	dev->data = (void*)fd;
 	return 0;
@@ -149,91 +160,92 @@ int dev_sendcmd(struct device *dev, const char *fmt, ...)
 {
 	int fd, len;
 	va_list ap;
+	char *ptr;
 
 	if(!dev || (fd = (int)dev->data) == -1) {
-		errmsg("dev_sendcmd: invalid device");
+		fprintf(stderr, "dev_sendcmd: invalid device");
 		return -1;
 	}
 
-	if(!dev->resp) {
-		if(!(dev->resp = malloc(512))) {
-			errmsg("dev_sendcmd: failed to allocate command/response buffer");
-			return -1;
-		}
-		dev->resp_buf_size = 512;
-	}
-
 	va_start(ap, fmt);
-	len = vsnprintf(dev->resp, dev->resp_buf_size, fmt, ap);
+	len = vsnprintf(dev->resp, sizeof dev->resp - 1, fmt, ap);
 	va_end(ap);
 
+	printf("dev_sendcmd(\"%s\")\n", dev->resp);
+
+	if(dev->resp[len-1] != '\n') {
+		dev->resp[len] = '\n';
+		dev->resp[++len] = 0;
+	}
+
 	if(write(fd, dev->resp, len) == -1) {
-		errmsg("dev_sendcmd: failed to send command");
+		fprintf(stderr, "dev_sendcmd: failed to send command");
 		return -1;
 	}
 	dev->resp[0] = 0;
 
-	if(waitresp(dev) == -1) {
-		errmsg("dev_sendcmd: device not responding");
+	if(readresp(dev, 2000) == -1) {
+		fprintf(stderr, "dev_sendcmd: device not responding");
 		return -1;
 	}
+
+	if((len = strlen(dev->resp)) > 0) {
+		ptr = dev->resp + len - 1;
+		while(ptr >= dev->resp && isspace(*ptr)) {
+			*ptr-- = 0;
+		}
+	}
+
+	printf("  <- \"%s\"\n", dev->resp);
 
 	return (memcmp(dev->resp, "OK ", 3) == 0) ? 0 : -1;
 }
 
-static int readresp(struct device *dev)
+static int readresp(struct device *dev, long timeout_msec)
 {
 	int fd = (int)dev->data;
 	int sz, newsz, total = 0;
 	char *tmpbuf;
 
-	for(;;) {
-		if(dev->resp_buf_size - total <= 1) {
-			newsz = dev->resp_buf_size << 1;
-			if(!(tmpbuf = realloc(dev->resp, newsz))) {
-				fprintf(stderr, "readresp: failed to resize response buffer to %d bytes, truncating\n", newsz);
-				break;
-			}
-		}
-
-		if((sz = read(fd, dev->resp + total, dev->resp_buf_size - total - 1)) <= 0) {
-			break;
-		}
-		total += sz;
+	if(waitresp(dev, timeout_msec) == -1) {
+		return -1;
 	}
 
-	dev->resp[total] = 0;
-	return total ? 0 : -1;
+	if((sz = read(fd, dev->resp, sizeof dev->resp - 1)) <= 0) {
+		return -1;
+	}
+	dev->resp[sz] = 0;
+	return 0;
 }
 
-static int waitresp(struct device *dev)
+static int waitresp(struct device *dev, long timeout_msec)
 {
 	fd_set rdset;
-	int fd = (int)dev->data, rem;
+	int fd = (int)dev->data;
+	long rem;
 	struct timeval tv0, tv;
-
-	FD_ZERO(&rdset);
-	FD_SET(fd, &rdset);
 
 	gettimeofday(&tv0, 0);
 
-	tv.tv_sec = 10;
-	tv.tv_usec = 0;
-
-
 	for(;;) {
+		FD_ZERO(&rdset);
+		FD_SET(fd, &rdset);
+
+		tv.tv_sec = timeout_msec / 1000;
+		tv.tv_usec = (timeout_msec % 1000) * 1000;
+
 		if(select(fd + 1, &rdset, 0, 0, &tv) == -1 && errno != EINTR) break;
 
 		if(FD_ISSET(fd, &rdset)) {
-			return readresp(dev);
+			return 0;
 		}
 
 		gettimeofday(&tv, 0);
-		rem = 10 - (int)(tv.tv_sec - tv0.tv_sec);
+
+		rem = timeout_msec - ((long)(tv.tv_sec - tv0.tv_sec) * 1000 + (long)(tv.tv_usec - tv0.tv_usec) / 1000);
 		if(rem <= 0) break;
 
-		tv.tv_sec = 10 - rem;
-		tv.tv_usec = 0;
+		timeout_msec = rem;
 	}
 
 	return -1;

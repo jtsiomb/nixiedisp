@@ -17,22 +17,22 @@ int main(int argc, char **argv)
 	struct termios term;
 	FILE *fpstat;
 	unsigned long val[7], prev[7], delta[7];
+	const char *ttypath = "/dev/ttyACM0";
 
-	if(!argv[1]) {
-		fprintf(stderr, "pass the tty device connected to the nixie display\n");
-		return 1;
+	if(argv[1]) {
+		ttypath = argv[1];
 	}
 
 	signal(SIGINT, sighandler);
 	signal(SIGTERM, sighandler);
 
-	if((fd = open(argv[1], O_RDWR | O_NOCTTY)) == -1) {
-		fprintf(stderr, "failed to open %s: %s\n", argv[1], strerror(errno));
+	if((fd = open(ttypath, O_RDWR | O_NOCTTY)) == -1) {
+		fprintf(stderr, "failed to open %s: %s\n", ttypath, strerror(errno));
 		return 1;
 	}
 
 	if(tcgetattr(fd, &term) == -1) {
-		fprintf(stderr, "failed to retrieve tty attributes for %s: %s\n", argv[1], strerror(errno));
+		fprintf(stderr, "failed to retrieve tty attributes for %s: %s\n", ttypath, strerror(errno));
 		return 1;
 	}
 	term.c_iflag = IGNBRK | IGNPAR | IGNCR;
