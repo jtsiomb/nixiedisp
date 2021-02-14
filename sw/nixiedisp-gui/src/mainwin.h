@@ -62,6 +62,8 @@ private slots:
 	void on_time_cycle_userTimeChanged(const QTime &time);
 	void on_bn_runcycle_clicked();
 	void on_spin_shownum_valueChanged(double arg1);
+	void on_action_exit_triggered();
+	void on_action_about_triggered();
 };
 
 #endif	/* MAINWIN_H_ */

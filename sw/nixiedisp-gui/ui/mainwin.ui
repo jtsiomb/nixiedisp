@@ -22,27 +22,6 @@
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout_5">
        <item>
-        <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0">
-         <item>
-          <widget class="QRadioButton" name="rad_dev_usb">
-           <property name="text">
-            <string>USB</string>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QRadioButton" name="rad_dev_serial">
-           <property name="text">
-            <string>Serial</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
         <widget class="QComboBox" name="cbox_devsel">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">

@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <stdio.h>
+#include <QMessageBox>
 #include <QSettings>
 #include "mainwin.h"
 #include "ui_mainwin.h"
@@ -74,9 +75,11 @@ void MainWin::updateui_clock()
 	switch(hrmode) {
 	case 12:
 		ui->rad_clock_12hr->setChecked(true);
+		on_rad_clock_12hr_toggled(true);
 		break;
 	case 24:
 		ui->rad_clock_24hr->setChecked(true);
+		on_rad_clock_24hr_toggled(true);
 		break;
 	}
 
@@ -257,6 +260,7 @@ void MainWin::on_rad_clock_24hr_toggled(bool checked)
 {
 	if(checked) {
 		ui->time_edit->setDisplayFormat("hh:mm.ss");
+		ui->time_cycle->setDisplayFormat("hh:mm");
 		dev_clock_set_hrmode(dev, 24);
 	}
 }
@@ -264,7 +268,8 @@ void MainWin::on_rad_clock_24hr_toggled(bool checked)
 void MainWin::on_rad_clock_12hr_toggled(bool checked)
 {
 	if(checked) {
-		ui->time_edit->setDisplayFormat("h:m.s ap");
+		ui->time_edit->setDisplayFormat("h:mm.s ap");
+		ui->time_cycle->setDisplayFormat("h:mm ap");
 		dev_clock_set_hrmode(dev, 12);
 	}
 }
@@ -339,4 +344,18 @@ void MainWin::on_bn_runcycle_clicked()
 void MainWin::on_spin_shownum_valueChanged(double val)
 {
 	dev_number(dev, val);
+}
+
+void MainWin::on_action_exit_triggered()
+{
+	QApplication::quit();
+}
+
+void MainWin::on_action_about_triggered()
+{
+	static const char *aboutstr = "Nixiedisp configuration UI\n"
+		"Copyright (c) 2021 John Tsiombikas <nuclear@member.fsf.org>\n"
+		"This program is free software. Feel free to use, modify and/or redistribute it\n"
+		"under the terms of the GNU General Public License v3 (or later)\n";
+	QMessageBox::about(this, "About nixiedisp", aboutstr);
 }
