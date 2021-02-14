@@ -202,7 +202,7 @@
     <item>
      <widget class="QTabWidget" name="tabs">
       <property name="currentIndex">
-       <number>1</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tab_clock">
        <attribute name="title">
@@ -467,7 +467,20 @@
          </spacer>
         </item>
         <item>
-         <widget class="QDoubleSpinBox" name="spin_shownum"/>
+         <widget class="QDoubleSpinBox" name="spin_shownum">
+          <property name="minimumSize">
+           <size>
+            <width>128</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="buttonSymbols">
+           <enum>QAbstractSpinBox::PlusMinus</enum>
+          </property>
+          <property name="maximum">
+           <double>999999.000000000000000</double>
+          </property>
+         </widget>
         </item>
         <item>
          <spacer name="horizontalSpacer_6">

@@ -54,7 +54,6 @@ void MainWin::uiactive(bool act)
 
 void MainWin::updateui_clock()
 {
-	dev_mask_mod(dev);
 	on_bn_updclock_clicked();
 
 	int hrmode = dev_clock_get_hrmode(dev);
@@ -85,8 +84,6 @@ void MainWin::updateui_clock()
 		ui->bn_timer_startstop->setChecked(tmstate ? Qt::Checked : Qt::Unchecked);
 		ui->bn_timer_startstop->setText(tmstate ? "Stop" : "Start");
 	}
-
-	dev_unmask_mod(dev);
 }
 
 void MainWin::on_rad_dev_usb_toggled(bool checked)
@@ -102,7 +99,7 @@ void MainWin::on_cbox_devsel_currentIndexChanged(int idx)
 {
 	char *fwstr;
 	char buf[128];
-	int res;
+	int res, val[3];
 
 	if(idx <= 0) {
 		if(dev) {
@@ -120,12 +117,39 @@ void MainWin::on_cbox_devsel_currentIndexChanged(int idx)
 		return;
 	}
 
+	dev_mask_mod(dev);
+
 	if((res = dev_getmode(dev)) == -1) {
 		goto err;
 	}
 	ui->tabs->setCurrentIndex(res);
 
+	if((res = dev_get_intensity(dev)) == -1) {
+		goto err;
+	}
+	ui->slider_intglobal->setValue(res);
+
+	if((res = dev_getblank(dev)) == -1) {
+		goto err;
+	}
+	ui->chk_blank->setChecked(res ? true : false);
+
+	if(dev_get_sched_cycle(dev, val, val + 1, val + 2) == -1) {
+		goto err;
+	}
+	ui->time_cycle->setTime(QTime(val[0], val[1], val[2]));
+
+	if((res = dev_getfade(dev)) == -1) {
+		goto err;
+	}
+	if(res) {
+		ui->rad_x_fade->setChecked(true);
+	} else {
+		ui->rad_x_instant->setChecked(true);
+	}
+
 	updateui_clock();
+	dev_unmask_mod(dev);
 	return;
 
 err:
@@ -148,6 +172,7 @@ void MainWin::on_tabs_currentChanged(int index)
 		dev_mode(dev, MODE_TIMER);
 		break;
 	case 2:
+		ui->spin_shownum->setValue(0);
 		dev_mode(dev, MODE_NUMBER);
 		break;
 	}
@@ -165,7 +190,7 @@ void MainWin::on_bn_timer_startstop_toggled()
 		dev_timer(dev, &tm);
 
 		ui->bn_timer_startstop->setText("Start");
-		ui->bn_timer_startstop->setChecked(Qt::Unchecked);
+		ui->bn_timer_startstop->setChecked(false);
 
 		sprintf(buf, "last timer: %u msec", tm);
 		statusBar()->showMessage(buf, 5000);
@@ -173,7 +198,7 @@ void MainWin::on_bn_timer_startstop_toggled()
 		dev_timer_start(dev);
 
 		ui->bn_timer_startstop->setText("Stop");
-		ui->bn_timer_startstop->setChecked(Qt::Checked);
+		ui->bn_timer_startstop->setChecked(true);
 	}
 
 	dev->flags ^= DEV_TMRUNNING;
@@ -199,7 +224,7 @@ void MainWin::on_frm_dimsec_toggled(bool state)
 	ui->slider_clock_dimsec->setEnabled(state);
 }
 
-void MainWin::on_slider_clock_dimsec_sliderMoved(int position)
+void MainWin::on_slider_clock_dimsec_valueChanged(int pos)
 {
 }
 
@@ -252,37 +277,41 @@ void MainWin::on_bn_updclock_clicked()
 	}
 }
 
-void MainWin::on_slider_intglobal_sliderMoved(int position)
+void MainWin::on_slider_intglobal_valueChanged(int pos)
 {
-
+	dev_set_intensity(dev, pos);
 }
 
-void MainWin::on_chk_blank_stateChanged(int arg1)
+void MainWin::on_chk_blank_stateChanged(int state)
 {
-
+	dev_blank(dev, state == Qt::Checked ? 1 : 0);
 }
 
 void MainWin::on_rad_x_instant_toggled(bool checked)
 {
-
+	if(checked) {
+		dev_setfade(dev, 0);
+	}
 }
 
 void MainWin::on_rad_x_fade_toggled(bool checked)
 {
-
+	if(checked) {
+		dev_setfade(dev, 0xff);
+	}
 }
 
 void MainWin::on_time_cycle_userTimeChanged(const QTime &time)
 {
-
+	dev_sched_cycle(dev, time.hour(), time.minute(), time.second());
 }
 
 void MainWin::on_bn_runcycle_clicked()
 {
-
+	dev_cycle(dev);
 }
 
-void MainWin::on_spin_shownum_valueChanged(double arg1)
+void MainWin::on_spin_shownum_valueChanged(double val)
 {
-
+	dev_number(dev, val);
 }

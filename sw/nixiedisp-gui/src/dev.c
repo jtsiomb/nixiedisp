@@ -64,6 +64,106 @@ int dev_getmode(struct device *dev)
 	return -1;
 }
 
+int dev_set_intensity(struct device *dev, int val)
+{
+	if(!dev || val < 0 || val > 15) return -1;
+
+	return dev_sendcmd(dev, "L%d", val);
+}
+
+int dev_get_intensity(struct device *dev)
+{
+	int val;
+
+	if(!dev) return -1;
+
+	if(dev_sendcmd(dev, "L?") == -1) {
+		return -1;
+	}
+	if(sscanf(dev->resp, "OK global intensity: %d", &val) < 1) {
+		return -1;
+	}
+	return val;
+}
+
+int dev_blank(struct device *dev, int blank)
+{
+	if(!dev) return -1;
+	return dev_sendcmd(dev, "b%d", blank ? 1 : 0);
+}
+
+int dev_getblank(struct device *dev)
+{
+	static const char *prefix = "OK blanking: ";
+	char *ptr;
+
+	if(!dev) return -1;
+
+	if(dev_sendcmd(dev, "b?") == -1) {
+		return -1;
+	}
+	if(!strstr(dev->resp, prefix)) {
+		return -1;
+	}
+	ptr = dev->resp + strlen(prefix);
+	if(memcmp(ptr, "on", 2) == 0) {
+		return 1;
+	}
+	if(memcmp(ptr, "off", 3) == 0) {
+		return 0;
+	}
+	return -1;
+}
+
+int dev_setfade(struct device *dev, int fade)
+{
+	if(!dev || fade < 0) return -1;
+	return dev_sendcmd(dev, "x 0x%02x", (unsigned int)fade);
+}
+
+int dev_getfade(struct device *dev)
+{
+	unsigned int mask;
+
+	if(!dev) return -1;
+
+	if(dev_sendcmd(dev, "x?") == -1) {
+		return -1;
+	}
+	if(sscanf(dev->resp, "OK fade mask: %x", &mask) < 1) {
+		return -1;
+	}
+	return mask;
+}
+
+int dev_cycle(struct device *dev)
+{
+	if(!dev) return -1;
+	return dev_sendcmd(dev, "c");
+}
+
+int dev_sched_cycle(struct device *dev, int hr, int min, int sec)
+{
+	if(!dev || hr < 0 || hr > 23 || min < 0 || min > 59 || sec < 0 || sec > 59) {
+		return -1;
+	}
+	return dev_sendcmd(dev, "C %d:%d.%d", hr, min, sec);
+}
+
+int dev_get_sched_cycle(struct device *dev, int *hr, int *min, int *sec)
+{
+	if(!dev) return -1;
+
+	if(dev_sendcmd(dev, "C?") == -1) {
+		return -1;
+	}
+	if(sscanf(dev->resp, "OK current anti-cathode poisoning cycle time: %d:%d.%d",
+				hr, min, sec) < 3) {
+		return -1;
+	}
+	return 0;
+}
+
 int dev_clock_set_time(struct device *dev, int hr, int min, int sec)
 {
 	if(!dev || hr < 0 || hr > 23 || min < 0 || min > 59 || sec < 0 || sec > 59) {

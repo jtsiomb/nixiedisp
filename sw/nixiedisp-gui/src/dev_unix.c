@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <stdarg.h>
 #include <errno.h>
 #include <unistd.h>
@@ -208,8 +209,7 @@ int dev_sendcmd(struct device *dev, const char *fmt, ...)
 static int readresp(struct device *dev, long timeout_msec)
 {
 	int fd = (int)dev->data;
-	int sz, newsz, total = 0;
-	char *tmpbuf;
+	int sz;
 
 	if(waitresp(dev, timeout_msec) == -1) {
 		return -1;
@@ -253,4 +253,26 @@ static int waitresp(struct device *dev, long timeout_msec)
 	}
 
 	return -1;
+}
+
+
+int dev_number(struct device *dev, float num)
+{
+	char buf[16];
+	int fd, len;
+
+	if(!dev || num < 0.0) return -1;
+
+	fd = (int)dev->data;
+
+	len = snprintf(buf, sizeof buf, "%g", num);
+	if(len > 6) len = 6;
+	buf[len] = 0;
+
+	printf("dev_number(\"%s\")\n", buf);
+	buf[len] = '\n';
+	buf[++len] = 0;
+
+	write(fd, buf, len);
+	return 0;
 }

@@ -56,6 +56,17 @@ void dev_unmask_mod(struct device *dev);
 
 int dev_mode(struct device *dev, int mode);
 int dev_getmode(struct device *dev);
+int dev_set_intensity(struct device *dev, int val);
+int dev_get_intensity(struct device *dev);
+int dev_blank(struct device *dev, int blank);
+int dev_getblank(struct device *dev);
+int dev_setfade(struct device *dev, int fade);
+int dev_getfade(struct device *dev);
+
+int dev_cycle(struct device *dev);
+int dev_sched_cycle(struct device *dev, int hr, int min, int sec);
+int dev_get_sched_cycle(struct device *dev, int *hr, int *min, int *sec);
+
 int dev_clock_set_time(struct device *dev, int hr, int min, int sec);
 int dev_clock_get_time(struct device *dev, int *hr, int *min, int *sec);
 int dev_clock_set_date(struct device *dev, int day, int mon, int yr);
@@ -71,6 +82,8 @@ int dev_timer_start(struct device *dev);
 int dev_timer_stop(struct device *dev);
 int dev_timer_reset(struct device *dev);
 int dev_timer(struct device *dev, unsigned int *tm);
+
+int dev_number(struct device *dev, float num);
 
 #ifdef __cplusplus
 }
