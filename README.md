@@ -1,8 +1,18 @@
 nixiedisp - USB nixie tube display
 ==================================
-A 6-digit nixie tube numeric display, software-controlled over USB or RS232,
-that also functions standalone as a clock. Designed to use IN-14 nixie tubes.
-Powered by 12v DC supply through standard barrel jack (center-positive).
+
+![nixiedisp](http://nuclear.mutantstargoat.com/hw/nixiedisp/img/nixiedisp_clock-sm.jpg)
+
+Nixiedisp is a 6-digit nixie tube numeric display, software-controlled over USB
+or RS232, that also functions standalone as a clock.
+
+Features:
+  - Controlled over USB or RS232 serial port to display arbitrary numbers, set
+    the time/date, change settings, and switch between modes of operation.
+  - Standalone operation as a clock or stopwatch timer with a battery-backed
+    real-time clock (CR2032 coin cell).
+  - Designed to use soviet IN-14 nixie tubes.
+  - Powered by a 12v DC supply through a standard 2mm barrel jack (center-positive).
 
 Excercise caution when operating without an enclosure, there are high voltages
 (180V DC) present in the power supply section of the board, and around the
@@ -12,7 +22,7 @@ Project structure:
 
  - `hw/`: hardware design
  - `fw/`: firmware for the on-board AVR microcontroller
- - `sw/`: end-user host-side software for controlling the device from a computer. (TODO)
+ - `sw/`: end-user host-side software for controlling the device from a computer
 
 License
 -------
@@ -41,8 +51,8 @@ To build one of these for yourself, you need to:
 
   4. Find a 12v DC power supply with a barrel jack (2mm center pin),
      center-positive (`+ -o)- -`), to power the board. It doesn't have to be
-     regulated, but it must be able to provide at least about 600mA at 12v.
-     (TODO: more accurate current requirements)
+     regulated, but it must be able to provide about 500mA at 12v.
+     Typical power consumption is 2-3W.
 
   5. If you got the git version of this project, you'll need to build the
      firmware by changing into `fw` and typing `make`. You'll need to have
@@ -53,6 +63,11 @@ To build one of these for yourself, you need to:
      ISP. If you have `avrdude` installed, you can simply change into `fw` and
      type `make program`, with the board powered up and the programmer
      connected.
+
+If you don't need the serial port (RS232) option, you can leave J1 (the DB9
+connector), U2 (max232 level converter) and all its surrounding electrolytic
+capacitors (C1, C2, C4, C8 and C15) unpopulated, and install a 10k pull-up
+resistor across the pads of J7 (usbpwr).
 
 References
 ----------

@@ -369,5 +369,4 @@ void MainWin::on_action_about_triggered()
 	about.setText(aboutstr);
 	about.setStandardButtons(QMessageBox::Ok);
 	about.exec();
-//	QMessageBox::about(this, "About nixiedisp", aboutstr);
 }
