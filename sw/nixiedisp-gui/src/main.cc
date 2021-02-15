@@ -23,6 +23,7 @@ QWidget *mainwin;
 int main(int argc, char **argv)
 {
 	QCoreApplication::setApplicationName("nixiedisp-gui");
+
 	QApplication app(argc, argv);
 	MainWin w;
 	w.show();
