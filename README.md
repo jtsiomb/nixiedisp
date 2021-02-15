@@ -18,6 +18,9 @@ Excercise caution when operating without an enclosure, there are high voltages
 (180V DC) present in the power supply section of the board, and around the
 nixie tubes.
 
+Project website: http://nuclear.mutantstargoat.com/hw/nixiedisp
+Github repo: https://github.com/jtsiomb/nixiedisp
+
 Project structure:
 
  - `hw/`: hardware design
