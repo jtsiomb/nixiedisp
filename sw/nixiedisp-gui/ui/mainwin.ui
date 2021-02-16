@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>nixiedisp</string>
+   <string>nixiedisp control</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -78,16 +78,6 @@
                 </property>
                </widget>
               </item>
-              <item>
-               <widget class="QLabel" name="label_3">
-                <property name="text">
-                 <string>0</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignCenter</set>
-                </property>
-               </widget>
-              </item>
              </layout>
             </item>
             <item>
@@ -129,7 +119,7 @@
          <item>
           <widget class="QGroupBox" name="groupBox">
            <property name="title">
-            <string>Anti-cathode posioning cycle</string>
+            <string>Anti-cathode poisoning cycle</string>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_8">
             <item>
@@ -548,22 +538,5 @@
   </action>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>slider_intglobal</sender>
-   <signal>sliderMoved(int)</signal>
-   <receiver>label_3</receiver>
-   <slot>setNum(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>125</x>
-     <y>212</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>278</x>
-     <y>209</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

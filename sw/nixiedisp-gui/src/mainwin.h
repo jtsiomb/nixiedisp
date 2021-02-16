@@ -52,8 +52,6 @@ private slots:
 	void on_bn_set_time_clicked();
 	void on_bn_set_date_clicked();
 	void on_bn_updclock_clicked();
-	void on_rad_dev_usb_toggled(bool checked);
-	void on_rad_dev_serial_toggled(bool checked);
 	void on_cbox_devsel_currentIndexChanged(int idx);
 	void on_slider_intglobal_valueChanged(int pos);
 	void on_chk_blank_stateChanged(int arg1);

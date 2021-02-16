@@ -103,15 +103,6 @@ void MainWin::updateui_clock()
 	}
 }
 
-void MainWin::on_rad_dev_usb_toggled(bool checked)
-{
-}
-
-void MainWin::on_rad_dev_serial_toggled(bool checked)
-{
-
-}
-
 void MainWin::on_cbox_devsel_currentIndexChanged(int idx)
 {
 	int res, val[3];

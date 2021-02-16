@@ -1,5 +1,5 @@
 QT += core gui widgets
-CONFIG += debug
+CONFIG += debug c++11
 TARGET = nixiedisp-gui
 
 SOURCES += src/main.cc src/mainwin.cc \

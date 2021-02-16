@@ -564,7 +564,7 @@
       <text:p>2.2uF 250V</text:p>
      </table:table-cell>
      <table:table-cell office:value-type="string" calcext:value-type="string">
-      <text:p>Through-hole radial</text:p>
+      <text:p>Through-hole radial electrolytic</text:p>
      </table:table-cell>
      <table:table-cell table:style-name="ce4" office:value-type="string" calcext:value-type="string">
       <text:p>647-UVR2E2R2MED1TD</text:p>
@@ -681,7 +681,7 @@
       <text:p>1</text:p>
      </table:table-cell>
      <table:table-cell office:value-type="string" calcext:value-type="string">
-      <text:p>AVR programming connector</text:p>
+      <text:p>AVR programming header</text:p>
      </table:table-cell>
      <table:table-cell office:value-type="string" calcext:value-type="string">
       <text:p>2x3 male pin header 2.54mm pitch</text:p>
@@ -1017,7 +1017,7 @@
       <text:p>1</text:p>
      </table:table-cell>
      <table:table-cell office:value-type="string" calcext:value-type="string">
-      <text:p>475K</text:p>
+      <text:p>475k</text:p>
      </table:table-cell>
      <table:table-cell office:value-type="string" calcext:value-type="string">
       <text:p>SMD 0805</text:p>
@@ -1041,7 +1041,7 @@
       <text:p>1</text:p>
      </table:table-cell>
      <table:table-cell office:value-type="string" calcext:value-type="string">
-      <text:p>3K32</text:p>
+      <text:p>3.32k</text:p>
      </table:table-cell>
      <table:table-cell office:value-type="string" calcext:value-type="string">
       <text:p>SMD 0805</text:p>

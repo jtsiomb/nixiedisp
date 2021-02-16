@@ -14,7 +14,7 @@ _autosave-*
 fw/nixiedisp
 moc_*.cpp
 moc_*.h
-nixiedisp-gui
+*nixiedisp-gui/nixiedisp-gui
 .qmake.stash
 *.user
 ui_*.h
