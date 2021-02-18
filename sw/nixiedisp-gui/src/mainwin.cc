@@ -67,6 +67,52 @@ void MainWin::uiactive(bool act)
 {
 }
 
+bool MainWin::updateui()
+{
+	int res, val[3];
+
+	dev_mask_mod(dev);
+
+	if((res = dev_getmode(dev)) == -1) {
+		return false;
+	}
+	ui->tabs->setCurrentIndex(res);
+
+	if((res = dev_get_intensity(dev)) == -1) {
+		return false;
+	}
+	ui->slider_intglobal->setValue(res);
+
+	if((res = dev_getblank(dev)) == -1) {
+		return false;
+	}
+	ui->chk_blank->setChecked(res ? true : false);
+
+	if(dev_get_sched_cycle(dev, val, val + 1, val + 2) == -1) {
+		return false;
+	}
+	ui->time_cycle->setTime(QTime(val[0], val[1], val[2]));
+
+	if((res = dev_getfade(dev)) == -1) {
+		return false;
+	}
+	if(res) {
+		ui->rad_x_fade->setChecked(true);
+	} else {
+		ui->rad_x_instant->setChecked(true);
+	}
+
+	if((res = dev_clock_get_hrsep(dev)) == -1) {
+		return false;
+	}
+	ui->slider_clock_hrsep->setValue(res);
+
+	updateui_clock();
+	dev_unmask_mod(dev);
+
+	return true;
+}
+
 void MainWin::updateui_clock()
 {
 	on_bn_updclock_clicked();
@@ -105,7 +151,6 @@ void MainWin::updateui_clock()
 
 void MainWin::on_cbox_devsel_currentIndexChanged(int idx)
 {
-	int res, val[3];
 	QSettings cfg;
 
 	if(idx <= 0) {
@@ -124,56 +169,17 @@ void MainWin::on_cbox_devsel_currentIndexChanged(int idx)
 		return;
 	}
 
-	dev_mask_mod(dev);
-
-	if((res = dev_getmode(dev)) == -1) {
-		goto err;
+	if(!updateui()) {
+		errmsg("Failed to communicate with the device");
+		ui->cbox_devsel->setCurrentIndex(0);
+		uiactive(false);
+		if(dev) {
+			dev_close(dev);
+			dev = 0;
+		}
 	}
-	ui->tabs->setCurrentIndex(res);
-
-	if((res = dev_get_intensity(dev)) == -1) {
-		goto err;
-	}
-	ui->slider_intglobal->setValue(res);
-
-	if((res = dev_getblank(dev)) == -1) {
-		goto err;
-	}
-	ui->chk_blank->setChecked(res ? true : false);
-
-	if(dev_get_sched_cycle(dev, val, val + 1, val + 2) == -1) {
-		goto err;
-	}
-	ui->time_cycle->setTime(QTime(val[0], val[1], val[2]));
-
-	if((res = dev_getfade(dev)) == -1) {
-		goto err;
-	}
-	if(res) {
-		ui->rad_x_fade->setChecked(true);
-	} else {
-		ui->rad_x_instant->setChecked(true);
-	}
-
-	if((res = dev_clock_get_hrsep(dev)) == -1) {
-		goto err;
-	}
-	ui->slider_clock_hrsep->setValue(res);
-
-	updateui_clock();
-	dev_unmask_mod(dev);
 
 	cfg.setValue("devpath", QString(dev->name));
-	return;
-
-err:
-	errmsg("Failed to communicate with the device");
-	ui->cbox_devsel->setCurrentIndex(0);
-	uiactive(false);
-	if(dev) {
-		dev_close(dev);
-		dev = 0;
-	}
 }
 
 void MainWin::on_tabs_currentChanged(int index)
@@ -335,6 +341,12 @@ void MainWin::on_bn_runcycle_clicked()
 void MainWin::on_spin_shownum_valueChanged(double val)
 {
 	dev_number(dev, val);
+}
+
+void MainWin::on_action_resetdef_triggered()
+{
+	dev_reset_defaults(dev);
+	updateui();
 }
 
 void MainWin::on_action_exit_triggered()

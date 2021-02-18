@@ -511,6 +511,8 @@
     <property name="title">
      <string>&amp;File</string>
     </property>
+    <addaction name="action_resetdef"/>
+    <addaction name="separator"/>
     <addaction name="action_exit"/>
    </widget>
    <widget class="QMenu" name="menu_help">
@@ -534,6 +536,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="action_resetdef">
+   <property name="text">
+    <string>Reset defaults</string>
    </property>
   </action>
  </widget>

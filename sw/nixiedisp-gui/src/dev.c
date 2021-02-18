@@ -32,6 +32,11 @@ void dev_unmask_mod(struct device *dev)
 	if(dev) dev->flags &= ~DEV_MODMASK;
 }
 
+int dev_reset_defaults(struct device *dev)
+{
+	return dev_sendcmd(dev, "R");
+}
+
 int dev_mode(struct device *dev, int mode)
 {
 	static const char mc[] = {'c', 't', 'n'};
@@ -80,7 +85,7 @@ int dev_get_intensity(struct device *dev)
 	if(dev_sendcmd(dev, "L?") == -1) {
 		return -1;
 	}
-	if(sscanf(dev->resp, "OK global intensity: %d", &val) < 1) {
+	if(sscanf(dev->resp, "OK %d", &val) < 1) {
 		return -1;
 	}
 	return val;
@@ -157,7 +162,7 @@ int dev_get_sched_cycle(struct device *dev, int *hr, int *min, int *sec)
 	if(dev_sendcmd(dev, "C?") == -1) {
 		return -1;
 	}
-	if(sscanf(dev->resp, "OK current anti-cathode poisoning cycle time: %d:%d.%d",
+	if(sscanf(dev->resp, "OK cycle time: %d:%d.%d",
 				hr, min, sec) < 3) {
 		return -1;
 	}
@@ -309,7 +314,7 @@ int dev_clock_get_hrsep(struct device *dev)
 	if(dev_sendcmd(dev, "H?") == -1) {
 		return -1;
 	}
-	if(sscanf(dev->resp, "OK hour separator intensity: %d", &val) < 1) {
+	if(sscanf(dev->resp, "OK %d", &val) < 1) {
 		return -1;
 	}
 	return val;

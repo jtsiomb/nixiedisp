@@ -142,6 +142,7 @@ int dev_open(struct device *dev)
 	}
 
 	dev->data = (void*)fd;
+	dev->flags = 0;
 	return 0;
 }
 

@@ -54,6 +54,8 @@ int dev_sendcmd(struct device *dev, const char *fmt, ...);
 void dev_mask_mod(struct device *dev);
 void dev_unmask_mod(struct device *dev);
 
+int dev_reset_defaults(struct device *dev);
+
 int dev_mode(struct device *dev, int mode);
 int dev_getmode(struct device *dev);
 int dev_set_intensity(struct device *dev, int val);

@@ -53,9 +53,9 @@ struct options {
 static struct options def_opt = {
 	SRAM_MAGIC,
 	{15, 15, 15, 15, 15, 15},
-	15, 15, SEP_LEVELS / 8,		/* glevel, dot_level, sep_level */
-	0xff,			/* fademask */
-	0x02,			/* flags: CLK0=0, CLKSEC=1 */
+	15, 15, SEP_LEVELS / 2,		/* glevel, dot_level, sep_level */
+	0,				/* fademask */
+	0x02,			/* flags: CLK0=0, CLKSEC=1, CLK12=0 */
 	{6, 0, 0}		/* anti-cathode poisoning cycle schedule (6am) */
 };
 static struct options opt;
@@ -266,7 +266,7 @@ static void proc_cmd(char *input)
 
 	case 'C':
 		if(args[0] == '?') {
-			printf("OK current anti-cathode poisoning cycle time: %02d:%02d.%02d\n",
+			printf("OK cycle time: %02d:%02d.%02d\n",
 					(int)opt.cycle_time[0], (int)opt.cycle_time[1], (int)opt.cycle_time[2]);
 			break;
 		}
@@ -279,7 +279,7 @@ static void proc_cmd(char *input)
 		opt.cycle_time[0] = rtc_bin2bcd(hr);
 		opt.cycle_time[1] = rtc_bin2bcd(min);
 		opt.cycle_time[2] = rtc_bin2bcd(sec);
-		printf("OK anti-cathode poisoning cycling set for %02d:%02d.%02d\n", hr, min, sec);
+		printf("OK cycle scheduled for %02d:%02d.%02d\n", hr, min, sec);
 		save_opt();
 		break;
 
@@ -310,7 +310,7 @@ static void proc_cmd(char *input)
 			opt.glevel = tmp;
 			save_opt();
 		}
-		printf("OK global intensity: %d\n", opt.glevel);
+		printf("OK %d\n", opt.glevel);
 		break;
 
 	case 'H':
@@ -323,7 +323,7 @@ static void proc_cmd(char *input)
 			opt.sep_level = tmp;
 			save_opt();
 		}
-		printf("OK hour separator intensity: %d\n", opt.sep_level);
+		printf("OK %d\n", opt.sep_level);
 		break;
 
 	case 'l':
@@ -339,7 +339,7 @@ static void proc_cmd(char *input)
 			}
 			save_opt();
 		}
-		printf("OK per digit intensities:");
+		printf("OK");
 		for(i=0; i<6; i++) {
 			printf(" %d", (unsigned int)opt.level[i]);
 		}
