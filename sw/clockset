@@ -1,0 +1,12 @@
+#!/bin/sh
+
+tty=/dev/ttyACM0
+
+if [ -n "$1" ]; then
+	tty=$1
+fi
+
+stty -F $tty 38400 clocal cs8 cread parenb igncr onlcr | exit 1
+
+echo s `date '+%H:%M.%S'` >$tty
+echo d `date '+%d/%m/%Y'` >$tty
