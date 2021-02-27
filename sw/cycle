@@ -1,0 +1,11 @@
+#!/bin/sh
+
+tty=/dev/ttyACM0
+
+if [ -n "$1" ]; then
+	tty=$1
+fi
+
+stty -F $tty 38400 clocal cs8 cread parenb igncr onlcr | exit 1
+
+echo c >$tty
