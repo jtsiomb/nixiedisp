@@ -1,0 +1,13 @@
+#!/bin/sh
+
+if [ -z "$PREFIX" ]; then
+	PREFIX=/usr/local
+fi
+
+scripts='clockset cycle'
+
+for i in $scripts; do
+	dest=$PREFIX/bin/nixie-$i
+	echo "installing: $dest"
+	cp $i $dest
+done
