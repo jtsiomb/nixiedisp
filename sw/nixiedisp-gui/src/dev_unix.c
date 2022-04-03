@@ -27,9 +27,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <termios.h>
 #include <sys/time.h>
 #include <sys/ioctl.h>
-#include <linux/serial.h>
 #include "uimsg.h"
 #include "dev.h"
+
+#ifdef __linux__
+#include <linux/serial.h>
+#endif
+
 
 static int readresp(struct device *dev, long timeout_msec);
 static int waitresp(struct device *dev, long timeout_msec);
@@ -56,7 +60,9 @@ int dev_scan(void)
 	DIR *dir;
 	struct dirent *dent;
 	struct device *head = 0, *node;
+#ifdef __linux__
 	struct serial_struct ser;
+#endif
 
 	if(!(dir = opendir("/dev"))) {
 		errmsg("dev_scan: failed to open /dev");
@@ -67,13 +73,20 @@ int dev_scan(void)
 		if(!strstr(dent->d_name, "tty")) {
 			continue;
 		}
-		if((fd = openat(dirfd(dir), dent->d_name, O_RDONLY | O_NOCTTY)) == -1) {
+		if((fd = openat(dirfd(dir), dent->d_name, O_RDONLY | O_NOCTTY | O_NONBLOCK)) == -1) {
 			continue;
 		}
+#ifdef __linux__
 		if(ioctl(fd, TIOCGSERIAL, &ser) == -1) {
 			close(fd);
 			continue;
 		}
+#else
+		if(!isatty(fd)) {
+			close(fd);
+			continue;
+		}
+#endif
 		close(fd);
 
 		if(!(node = calloc(1, sizeof *node))) {
@@ -113,10 +126,11 @@ int dev_open(struct device *dev)
 		return -1;
 	}
 
-	if((fd = open(dev->name, O_RDWR | O_NOCTTY)) == -1) {
+	if((fd = open(dev->name, O_RDWR | O_NOCTTY | O_NONBLOCK)) == -1) {
 		errmsg("dev_open: failed to open %s: %s", dev->name, strerror(errno));
 		return -1;
 	}
+	fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) & ~O_NONBLOCK);
 	if(tcgetattr(fd, &term) == -1) {
 		errmsg("dev_open: failed to get terminal attributes for: %s", dev->name);
 		close(fd);
