@@ -1,7 +1,7 @@
 #ifndef CONFIG_H_
 #define CONFIG_H_
 
-#define VERSTR	"1.0"
+#define VERSTR	"1.1"
 
 /* pin assignments
  * B[0,2]: serial clock for the 3 shift registers

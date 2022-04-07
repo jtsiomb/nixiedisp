@@ -23,9 +23,9 @@
 
 #define DEBOUNCE_ITER	32
 
+static void handle_button(unsigned char bn);
 static void proc_cmd(char *input);
 static int switch_mode(int m);
-static void handle_button(unsigned char bn);
 static void setdigit(int idx, unsigned char val);
 static void update_display(void);
 static void cycle_disp(void);
@@ -63,7 +63,7 @@ static struct options opt;
 enum { MODE_CLOCK, MODE_TIMER, MODE_NUM };
 static const char *modename[] = {"clock", "timer", "number"};
 
-static int mode;
+static int mode, timeset;
 static unsigned char echo, blank;
 static unsigned char disp[7], prev[6], fdisp[6];
 static unsigned int fade_time[6];
@@ -71,6 +71,9 @@ static unsigned char dotmask;
 
 static struct rtc_time tm;
 static struct rtc_date date;
+
+static unsigned int frame;
+static int press_frm;
 
 static char input[64];
 static unsigned char inp_cidx;
@@ -125,31 +128,162 @@ int main(void)
 
 		read_buttons();
 
-		if(bnpress) {
-			if(bnpress & PC_BN_MODE) {
-				switch_mode((mode + 1) % 3);
+		if(timeset) {
+			if(bnpress) {
+				if(bnpress & PC_BN_MODE) {
+					if(timeset++ >= 6) {
+						timeset = 0;
+						bnpress = 0;
+						continue;
+					}
+				} else {
+					handle_button(bnpress);
+				}
 			}
 
-			if(bnpress & ~PC_BN_MODE) {	/* if other buttons changed state... */
-				handle_button(bnpress & ~PC_BN_MODE);
+			if(timeset <= 3) {
+				rtc_get_time_bcd(&tm);
+			} else {
+				rtc_get_date_bcd(&date);
 			}
-			bnpress = 0;
-		}
 
-		if(bnstate & PC_BN_B) {
-			rtc_get_date_bcd(&date);
 		} else {
-			rtc_get_time_bcd(&tm);
-		}
+			if(bnpress) {
+				if(bnpress & PC_BN_MODE) {
+					switch_mode((mode + 1) % 3);
+				}
 
-		if(tm.hour == opt.cycle_time[0] && tm.min == opt.cycle_time[1] && tm.sec == opt.cycle_time[2]) {
-			cycle_disp();
+				if(bnpress & ~PC_BN_MODE) {	/* if other buttons changed state... */
+					handle_button(bnpress & ~PC_BN_MODE);
+				}
+			}
+
+			if(bnstate & PC_BN_A) {
+				if(mode == MODE_CLOCK && frame - press_frm >= 10000) {
+					timeset = 1;
+				}
+			}
+
+			if(bnstate & PC_BN_B) {
+				rtc_get_date_bcd(&date);
+			} else {
+				rtc_get_time_bcd(&tm);
+			}
+
+			if(tm.hour == opt.cycle_time[0] && tm.min == opt.cycle_time[1] && tm.sec == opt.cycle_time[2]) {
+				cycle_disp();
+			}
 		}
+		bnpress = 0;
 
 		update_display();
 	}
 	return 0;
 }
+
+static void handle_button(unsigned char pressed)
+{
+	switch(mode) {
+	case MODE_TIMER:
+		if(pressed & PC_BN_A) {
+			if(timer_running) {
+				timer_stop();
+			} else {
+				timer_start();
+			}
+		}
+		if(pressed & PC_BN_B) {
+			timer_reset();
+		}
+		break;
+
+	case MODE_NUM:
+		if(pressed & PC_BN_A) {
+			numchange(-1);
+		}
+		if(pressed & PC_BN_B) {
+			numchange(1);
+		}
+		break;
+
+	case MODE_CLOCK:
+		if(timeset) {
+			if(timeset <= 3) {
+				rtc_get_time(&tm);
+			} else {
+				rtc_get_date(&date);
+			}
+			if(bnstate & PC_BN_B) {
+				/* increment current field */
+				switch(timeset) {
+				case 1:
+					if(++tm.hour >= 24) tm.hour = 0;
+					rtc_set_time(tm.hour, tm.min, tm.sec);
+					break;
+				case 2:
+					if(++tm.min >= 60) tm.min = 0;
+					rtc_set_time(tm.hour, tm.min, tm.sec);
+					break;
+				case 3:
+					rtc_set_time(tm.hour, tm.min, 0);
+					break;
+				case 4:
+					if(++date.day > 31) date.day = 1;
+					rtc_set_date(date.year, date.month, date.day);
+					break;
+				case 5:
+					if(++date.month > 12) date.month = 1;
+					rtc_set_date(date.year, date.month, date.day);
+					break;
+				case 6:
+					rtc_set_date(++date.year, date.month, date.day);
+				default:
+					break;
+				}
+
+			} else if(bnstate & PC_BN_A) {
+				/* decrement current field */
+				switch(timeset) {
+				case 1:
+					if(--tm.hour < 0) tm.hour = 23;
+					rtc_set_time(tm.hour, tm.min, tm.sec);
+					break;
+				case 2:
+					if(--tm.min < 0) tm.min = 59;
+					rtc_set_time(tm.hour, tm.min, tm.sec);
+					break;
+				case 3:
+					rtc_set_time(tm.hour, tm.min, 0);
+					break;
+				case 4:
+					if(--date.day < 1) date.day = 31;
+					rtc_set_date(date.year, date.month, date.day);
+					break;
+				case 5:
+					if(--date.month < 1) date.month = 12;
+					rtc_set_date(date.year, date.month, date.day);
+					break;
+				case 6:
+					if(date.year > 2000) {
+						rtc_set_date(--date.year, date.month, date.day);
+					}
+				default:
+					break;
+				}
+			}
+
+		} else {
+			if(pressed & PC_BN_A) {
+				press_frm = frame;
+			}
+		}
+		break;
+
+	default:
+		break;
+	}
+}
+
 
 static const char helpstr[] __attribute__((progmem)) =
 	"nixiedisp firmware v" VERSTR " by John Tsiombikas <nuclear@member.fsf.org>\n"
@@ -488,36 +622,6 @@ static int switch_mode(int m)
 	return 0;
 }
 
-static void handle_button(unsigned char pressed)
-{
-	switch(mode) {
-	case MODE_TIMER:
-		if(pressed & PC_BN_A) {
-			if(timer_running) {
-				timer_stop();
-			} else {
-				timer_start();
-			}
-		}
-		if(pressed & PC_BN_B) {
-			timer_reset();
-		}
-		break;
-
-	case MODE_NUM:
-		if(pressed & PC_BN_A) {
-			numchange(-1);
-		}
-		if(pressed & PC_BN_B) {
-			numchange(1);
-		}
-		break;
-
-	default:
-		break;	/* manual clock setting not implemented yet */
-	}
-}
-
 static void setdigit(int idx, unsigned char val)
 {
 	unsigned char *dptr = disp + idx;
@@ -550,7 +654,6 @@ static unsigned char c12lut[] = {
 
 static void update_display(void)
 {
-	static unsigned int frame;
 	int i, hour, sec, mplex, lvl, dframe, fade, fadeout, dp = 0;
 	unsigned char *dptr, digit;
 	unsigned long tval;
@@ -573,7 +676,7 @@ static void update_display(void)
 
 	switch(mode) {
 	case MODE_CLOCK:
-		if(bnstate & PC_BN_B) {
+		if((!timeset && (bnstate & PC_BN_B)) || timeset > 3) {
 			/* show date while holding down B */
 			setdigit(0, date.day & 0xf0 ? date.day >> 4 : 0xff);
 			setdigit(1, date.day & 0xf);
@@ -651,22 +754,38 @@ static void update_display(void)
 		 * when we display digits
 		 */
 
-		for(i=0; i<6; i++) {
-			lvl = opt.glevel * opt.level[i] >> 4;
-
-			if((opt.fademask & (0x20 >> i)) && fade_time[i]) {
-				fadeout = fade_time[i] > HALF_FADE ? 1 : 0;
-				fade = fadeout ? fade_time[i] - HALF_FADE : HALF_FADE - fade_time[i];
-				digit = fadeout ? prev[i] : disp[i];
-
-				lvl = lvl * (fade >> FADE_SHIFT) >> 4;
-
-				fdisp[i] = dframe <= lvl ? digit : 0xff;
-			} else {
-				fdisp[i] = dframe <= lvl ? disp[i] : 0xff;
+		if(timeset) {
+			/* if we're setting the time, dim the non-active digits */
+			for(i=0; i<3; i++) {
+				if(i == timeset - 1 || i == timeset - 4) {
+					fdisp[i * 2] = disp[i * 2];
+					fdisp[i * 2 + 1] = disp[i * 2 + 1];
+				} else {
+					fdisp[i * 2] = dframe < 4 ? disp[i * 2] : 0xff;
+					fdisp[i * 2 + 1] = dframe < 4 ? disp[i * 2 + 1] : 0xff;
+				}
 			}
 
-			if(fade_time[i]) fade_time[i]--;
+		} else {
+			/* normal operation */
+
+			for(i=0; i<6; i++) {
+				lvl = opt.glevel * opt.level[i] >> 4;
+
+				if((opt.fademask & (0x20 >> i)) && fade_time[i]) {
+					fadeout = fade_time[i] > HALF_FADE ? 1 : 0;
+					fade = fadeout ? fade_time[i] - HALF_FADE : HALF_FADE - fade_time[i];
+					digit = fadeout ? prev[i] : disp[i];
+
+					lvl = lvl * (fade >> FADE_SHIFT) >> 4;
+
+					fdisp[i] = dframe <= lvl ? digit : 0xff;
+				} else {
+					fdisp[i] = dframe <= lvl ? disp[i] : 0xff;
+				}
+
+				if(fade_time[i]) fade_time[i]--;
+			}
 		}
 	} else {
 		fdisp[0] = fdisp[1] = fdisp[2] = fdisp[3] = fdisp[4] = fdisp[5] = 0xff;
@@ -698,7 +817,7 @@ static void cycle_disp(void)
 		for(j=0; j<3; j++) {
 			shiftout(j, i | (i << 4));
 		}
-		_delay_ms(100);
+		_delay_ms(120);
 	}
 
 	shiftout(0, 0xff);
@@ -706,7 +825,7 @@ static void cycle_disp(void)
 	shiftout(2, 0xff);
 
 	PORTD = 0xff;
-	_delay_ms(120);
+	_delay_ms(140);
 	PORTD = 0;
 
 	for(i=0; i<10; i++) {
@@ -714,7 +833,7 @@ static void cycle_disp(void)
 		for(j=0; j<3; j++) {
 			shiftout(j, x | (x << 4));
 		}
-		_delay_ms(100);
+		_delay_ms(120);
 	}
 }
 
